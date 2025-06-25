@@ -127,12 +127,17 @@ window.addEventListener('popstate', () => {
 The router state follows these patterns:
 
 ```typescript
-type RouterState = 
+type RouterState =
   | { current: 'ROUTER_INITIAL' }
   | { current: 'NAVIGATION_IN_PROGRESS'; route: ParsedRouteT }
   | { current: 'ROUTER_READY'; currentRoute: ParsedRouteT; routes: RoutesT }
   | { current: 'ROUTE_NOT_FOUND'; requestedPath: string }
-  | { current: 'NAVIGATION_FAILURE'; errorMsg: string; errorType: string; currentRoute?: ParsedRouteT }
+  | {
+      current: 'NAVIGATION_FAILURE'
+      errorMsg: string
+      errorType: string
+      currentRoute?: ParsedRouteT
+    }
 ```
 
 ### State Access
@@ -217,7 +222,7 @@ const queryParams: ParamsT = { search: 'phone', sort: 'price' }
 
 - `ROUTER_INITIALIZED` - Router successfully initialized
 - `NAVIGATION_STARTED` - Navigation begun
-- `NAVIGATION_RESOLVED` - Navigation completed successfully  
+- `NAVIGATION_RESOLVED` - Navigation completed successfully
 - `NAVIGATION_REJECTED` - Navigation failed
 - `ROUTE_NOT_FOUND_DETECTED` - Route pattern not found
 - `BROWSER_NAVIGATION_DETECTED` - Browser back/forward navigation
@@ -277,7 +282,11 @@ const isValid = effects.router.validateRoute('/users/:id', routes)
 Generate URL from route components.
 
 ```typescript
-const url = effects.router.getUrlFromRoute('/users/:id', { id: '123' }, { tab: 'profile' })
+const url = effects.router.getUrlFromRoute(
+  '/users/:id',
+  { id: '123' },
+  { tab: 'profile' }
+)
 // Returns '/users/123?tab=profile'
 ```
 
@@ -290,7 +299,7 @@ const url = effects.router.getUrlFromRoute('/users/:id', { id: '123' }, { tab: '
 if (router.current === 'NAVIGATION_FAILURE') {
   console.log('Error:', router.errorMsg)
   console.log('Type:', router.errorType)
-  
+
   // Possible error types:
   // - 'invalid_pattern' - Route pattern not found
   // - 'navigation_error' - Browser navigation failed
@@ -316,13 +325,17 @@ if (router.current === 'ROUTE_NOT_FOUND') {
 useEffect(() => {
   if (router.current === 'ROUTER_READY') {
     const { pattern, routeParams } = router.currentRoute
-    
+
     // React to route changes
     if (pattern === '/users/:id' && routeParams?.id) {
       loadUserData(routeParams.id)
     }
   }
-}, [router.current, router.currentRoute?.pattern, router.currentRoute?.routeParams])
+}, [
+  router.current,
+  router.currentRoute?.pattern,
+  router.currentRoute?.routeParams
+])
 ```
 
 ### Conditional Rendering
@@ -331,9 +344,9 @@ useEffect(() => {
 // Route-based component rendering
 const renderRoute = () => {
   if (router.current !== 'ROUTER_READY') return <Loading />
-  
+
   const { pattern, routeParams } = router.currentRoute
-  
+
   switch (pattern) {
     case '/':
       return <HomePage />

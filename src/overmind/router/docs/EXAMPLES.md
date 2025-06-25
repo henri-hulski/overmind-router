@@ -32,12 +32,12 @@ import { routes } from '../../routes'
 export const onInitializeOvermind = async ({ actions }: Context) => {
   // Initialize router first
   actions.router.initializeRouter(routes)
-  
+
   // Set up browser navigation
   window.addEventListener('popstate', () => {
     actions.router.onPopState()
   })
-  
+
   // Check authentication
   await actions.auth.checkSession()
 }
@@ -48,14 +48,15 @@ export const onInitializeOvermind = async ({ actions }: Context) => {
 ```tsx
 // src/components/App/index.tsx
 import React, { useEffect } from 'react'
-import { useAppState, useActions } from '../../overmind'
-import { Navigation } from '../Navigation'
-import { HomePage } from '../HomePage'
-import { ClientList } from '../ClientList'
+
+import { useActions, useAppState } from '../../overmind'
 import { ClientDetail } from '../ClientDetail'
 import { ClientEdit } from '../ClientEdit'
+import { ClientList } from '../ClientList'
 import { ClientNew } from '../ClientNew'
+import { HomePage } from '../HomePage'
 import { Login } from '../Login'
+import { Navigation } from '../Navigation'
 
 export default function App() {
   const { router, app } = useAppState()
@@ -98,7 +99,7 @@ export default function App() {
           <div className="error-page">
             <h1>Page Not Found</h1>
             <p>The path "{router.requestedPath}" was not found.</p>
-            <button 
+            <button
               onClick={() => actions.router.navigateTo({ pattern: '/' })}
               className="btn-primary"
             >
@@ -119,7 +120,7 @@ export default function App() {
           <div className="error-page">
             <h1>Navigation Error</h1>
             <p>{router.errorMsg}</p>
-            <button 
+            <button
               onClick={() => actions.router.navigateTo({ pattern: '/' })}
               className="btn-primary"
             >
@@ -168,7 +169,8 @@ export default function App() {
 ```tsx
 // src/components/Navigation/index.tsx
 import React from 'react'
-import { useAppState, useActions } from '../../overmind'
+
+import { useActions, useAppState } from '../../overmind'
 
 export const Navigation: React.FC = () => {
   const { router, auth } = useAppState()
@@ -184,14 +186,14 @@ export const Navigation: React.FC = () => {
   return (
     <nav className="navbar">
       <div className="nav-brand">
-        <h1 
+        <h1
           onClick={() => actions.router.navigateTo({ pattern: '/' })}
           style={{ cursor: 'pointer' }}
         >
           My App
         </h1>
       </div>
-      
+
       <div className="nav-links">
         <button
           onClick={() => actions.router.navigateTo({ pattern: '/' })}
@@ -199,14 +201,14 @@ export const Navigation: React.FC = () => {
         >
           Home
         </button>
-        
+
         <button
           onClick={() => actions.router.navigateTo({ pattern: '/clients' })}
           className={`nav-link ${currentPattern === '/clients' ? 'active' : ''}`}
         >
           Clients
         </button>
-        
+
         <button
           onClick={() => actions.router.navigateTo({ pattern: '/clients/new' })}
           className={`nav-link ${currentPattern === '/clients/new' ? 'active' : ''}`}
@@ -216,10 +218,7 @@ export const Navigation: React.FC = () => {
       </div>
 
       <div className="nav-actions">
-        <button
-          onClick={() => actions.auth.logout()}
-          className="btn-secondary"
-        >
+        <button onClick={() => actions.auth.logout()} className="btn-secondary">
           Logout
         </button>
       </div>
@@ -233,7 +232,8 @@ export const Navigation: React.FC = () => {
 ```tsx
 // src/components/ClientDetail/index.tsx
 import React, { useEffect } from 'react'
-import { useAppState, useActions } from '../../overmind'
+
+import { useActions, useAppState } from '../../overmind'
 
 interface Props {
   clientId: number
@@ -243,7 +243,7 @@ export const ClientDetail: React.FC<Props> = ({ clientId }) => {
   const { clients, router } = useAppState()
   const actions = useActions()
 
-  const client = clients.clients.find(c => c.id === clientId)
+  const client = clients.clients.find((c) => c.id === clientId)
   const isLoading = clients.current === 'FETCH_CLIENTS_IN_PROGRESS'
 
   useEffect(() => {
@@ -306,15 +306,25 @@ export const ClientDetail: React.FC<Props> = ({ clientId }) => {
       <div className="client-info">
         <div className="info-section">
           <h2>Contact Information</h2>
-          <p><strong>Company:</strong> {client.company}</p>
-          <p><strong>Email:</strong> {client.email}</p>
-          <p><strong>Phone:</strong> {client.phone}</p>
-          <p><strong>Address:</strong> {client.address}</p>
+          <p>
+            <strong>Company:</strong> {client.company}
+          </p>
+          <p>
+            <strong>Email:</strong> {client.email}
+          </p>
+          <p>
+            <strong>Phone:</strong> {client.phone}
+          </p>
+          <p>
+            <strong>Address:</strong> {client.address}
+          </p>
         </div>
 
         <div className="info-section">
           <h2>Status</h2>
-          <span className={`status-badge status-${client.status.toLowerCase()}`}>
+          <span
+            className={`status-badge status-${client.status.toLowerCase()}`}
+          >
             {client.status}
           </span>
         </div>
@@ -329,7 +339,8 @@ export const ClientDetail: React.FC<Props> = ({ clientId }) => {
 ```tsx
 // src/components/ClientList/index.tsx
 import React, { useEffect, useState } from 'react'
-import { useAppState, useActions } from '../../overmind'
+
+import { useActions, useAppState } from '../../overmind'
 
 export const ClientList: React.FC = () => {
   const { clients, router } = useAppState()
@@ -344,14 +355,16 @@ export const ClientList: React.FC = () => {
   const [statusInput, setStatusInput] = useState(statusFilter)
 
   const isLoading = clients.current === 'FETCH_CLIENTS_IN_PROGRESS'
-  const filteredClients = clients.clients.filter(client => {
-    const matchesSearch = !searchQuery || 
+  const filteredClients = clients.clients.filter((client) => {
+    const matchesSearch =
+      !searchQuery ||
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       client.company.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesStatus = statusFilter === 'all' || 
+
+    const matchesStatus =
+      statusFilter === 'all' ||
       client.status.toLowerCase() === statusFilter.toLowerCase()
-    
+
     return matchesSearch && matchesStatus
   })
 
@@ -413,7 +426,7 @@ export const ClientList: React.FC = () => {
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
-          
+
           <select
             value={statusInput}
             onChange={(e) => setStatusInput(e.target.value)}
@@ -423,11 +436,11 @@ export const ClientList: React.FC = () => {
             <option value="inactive">Inactive</option>
             <option value="prospect">Prospect</option>
           </select>
-          
+
           <button onClick={handleSearch} className="btn-primary">
             Search
           </button>
-          
+
           <button onClick={handleClearFilters} className="btn-secondary">
             Clear
           </button>
@@ -448,15 +461,17 @@ export const ClientList: React.FC = () => {
               )}
             </div>
           ) : (
-            filteredClients.map(client => (
-              <div 
-                key={client.id} 
+            filteredClients.map((client) => (
+              <div
+                key={client.id}
                 className="client-card"
                 onClick={() => handleClientClick(client.id)}
               >
                 <h3>{client.name}</h3>
                 <p>{client.company}</p>
-                <span className={`status-badge status-${client.status.toLowerCase()}`}>
+                <span
+                  className={`status-badge status-${client.status.toLowerCase()}`}
+                >
                   {client.status}
                 </span>
               </div>
@@ -479,10 +494,10 @@ export const checkAuthOnNavigation = ({ state, actions }: Context) => {
 
   if (router.current === 'ROUTER_READY') {
     const { pattern } = router.currentRoute!
-    
+
     // Public routes that don't require authentication
     const publicRoutes = ['/', '/login', '/signup', '/reset-password']
-    
+
     if (!publicRoutes.includes(pattern) && auth.current !== 'AUTHENTICATED') {
       // Redirect to login with return URL
       actions.router.redirectTo({
@@ -496,10 +511,10 @@ export const checkAuthOnNavigation = ({ state, actions }: Context) => {
 // Call this in your app initialization
 export const onInitializeOvermind = async ({ actions }: Context) => {
   actions.router.initializeRouter(routes)
-  
+
   await actions.auth.checkSession()
   actions.auth.checkAuthOnNavigation()
-  
+
   window.addEventListener('popstate', () => {
     actions.router.onPopState()
     actions.auth.checkAuthOnNavigation()
@@ -514,19 +529,19 @@ export const onInitializeOvermind = async ({ actions }: Context) => {
 import { routes } from '../routes'
 
 export const buildUrl = (
-  pattern: string, 
-  routeParams?: Record<string, string>, 
+  pattern: string,
+  routeParams?: Record<string, string>,
   params?: Record<string, string>
 ): string => {
   let url = pattern
-  
+
   // Replace route parameters
   if (routeParams) {
     Object.entries(routeParams).forEach(([key, value]) => {
       url = url.replace(`:${key}`, value)
     })
   }
-  
+
   // Add query parameters
   if (params && Object.keys(params).length > 0) {
     const searchParams = new URLSearchParams()
@@ -535,7 +550,7 @@ export const buildUrl = (
     })
     url += `?${searchParams.toString()}`
   }
-  
+
   return url
 }
 
@@ -549,12 +564,13 @@ const clientUrl = buildUrl('/clients/:id', { id: '123' }, { tab: 'edit' })
 ```tsx
 // src/components/RouteRenderer/index.tsx
 import React, { memo } from 'react'
+
 import { useAppState } from '../../overmind'
 
 // Memoized route renderer to prevent unnecessary re-renders
 export const RouteRenderer = memo(() => {
   const { router } = useAppState()
-  
+
   if (router.current !== 'ROUTER_READY' || !router.currentRoute) {
     return <div>Loading...</div>
   }
@@ -568,9 +584,11 @@ export const RouteRenderer = memo(() => {
     case '/clients':
       return <ClientList />
     case '/clients/:id':
-      return routeParams?.id ? 
-        <ClientDetail clientId={parseInt(routeParams.id)} /> : 
+      return routeParams?.id ? (
+        <ClientDetail clientId={parseInt(routeParams.id)} />
+      ) : (
         <div>Invalid client ID</div>
+      )
     default:
       return <div>Route not found</div>
   }

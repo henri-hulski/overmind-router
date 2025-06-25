@@ -33,9 +33,9 @@ const routes = {
 actions.router.initializeRouter(routes)
 
 // 3. Navigate in components
-actions.router.navigateTo({ 
-  pattern: '/users/:id', 
-  routeParams: { id: '123' } 
+actions.router.navigateTo({
+  pattern: '/users/:id',
+  routeParams: { id: '123' }
 })
 
 // 4. Access current route
@@ -84,13 +84,13 @@ This makes debugging routing issues straightforward, as you can observe the enti
 
   ```typescript
   const routes = {
-    '/admin': { 
-      name: 'admin', 
+    '/admin': {
+      name: 'admin',
       requiresAuth: true,
       requiredRoles: ['admin'],
       permissions: ['admin.read']
     },
-    '/users/:id/edit': { 
+    '/users/:id/edit': {
       name: 'userEdit',
       requiresAuth: true,
       guard: (user, params) => user.id === params.id || user.hasRole('admin')
@@ -157,7 +157,7 @@ This makes debugging routing issues straightforward, as you can observe the enti
     '/users/:id': { id: string }
     '/posts/:postId/comments/:commentId': { postId: string; commentId: string }
   }
-  
+
   // Compile-time route validation
   actions.router.navigateTo<'/users/:id'>({
     pattern: '/users/:id',
@@ -169,7 +169,7 @@ This makes debugging routing issues straightforward, as you can observe the enti
 
   ```typescript
   const routes = {
-    '/users/:id': { 
+    '/users/:id': {
       name: 'userDetail',
       params: {
         id: { type: 'number', min: 1 },

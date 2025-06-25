@@ -38,7 +38,7 @@ import { routes } from '../../routes'
 export const onInitializeOvermind = async ({ actions }: Context) => {
   // Initialize router with your routes
   actions.router.initializeRouter(routes)
-  
+
   // Set up browser navigation (back/forward buttons)
   window.addEventListener('popstate', () => {
     actions.router.onPopState()
@@ -53,7 +53,8 @@ Create your main App component to respond to route changes:
 ```tsx
 // src/components/App/index.tsx
 import React, { useEffect } from 'react'
-import { useAppState, useActions } from '../../overmind'
+
+import { useActions, useAppState } from '../../overmind'
 
 export default function App() {
   const { router, app } = useAppState()
@@ -95,7 +96,9 @@ export default function App() {
         <button onClick={() => actions.router.navigateTo({ pattern: '/' })}>
           Home
         </button>
-        <button onClick={() => actions.router.navigateTo({ pattern: '/clients' })}>
+        <button
+          onClick={() => actions.router.navigateTo({ pattern: '/clients' })}
+        >
           Clients
         </button>
       </nav>
@@ -127,9 +130,7 @@ Ensure your `tsconfig.json` includes the router types:
     "strict": true,
     "moduleResolution": "node"
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }
 ```
 

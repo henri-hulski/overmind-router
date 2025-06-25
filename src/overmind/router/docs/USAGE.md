@@ -22,15 +22,15 @@ Navigate to routes with dynamic segments:
 
 ```typescript
 // Navigate to specific client
-actions.router.navigateTo({ 
-  pattern: '/clients/:id', 
-  routeParams: { id: '123' } 
+actions.router.navigateTo({
+  pattern: '/clients/:id',
+  routeParams: { id: '123' }
 })
 
 // Navigate to edit client
-actions.router.navigateTo({ 
-  pattern: '/clients/:id/edit', 
-  routeParams: { id: '123' } 
+actions.router.navigateTo({
+  pattern: '/clients/:id/edit',
+  routeParams: { id: '123' }
 })
 ```
 
@@ -40,7 +40,7 @@ Add query parameters to any route:
 
 ```typescript
 // Navigate with search query
-actions.router.navigateTo({ 
+actions.router.navigateTo({
   pattern: '/clients',
   params: { search: 'john', status: 'active' }
 })
@@ -55,7 +55,7 @@ Handle browser back/forward buttons:
 // Go back
 actions.router.navigateBack()
 
-// Go forward  
+// Go forward
 actions.router.navigateForward()
 ```
 
@@ -68,7 +68,7 @@ const { router } = useAppState()
 
 if (router.current === 'ROUTER_READY' && router.currentRoute) {
   const { pattern, routeParams, params, path } = router.currentRoute
-  
+
   // pattern: '/clients/:id'
   // routeParams: { id: '123' }
   // params: { search: 'john' }
@@ -85,8 +85,8 @@ interface ClientDetailProps {
 
 export const ClientDetail: React.FC<ClientDetailProps> = ({ clientId }) => {
   const { clients } = useAppState()
-  const client = clients.clients.find(c => c.id === clientId)
-  
+  const client = clients.clients.find((c) => c.id === clientId)
+
   return (
     <div>
       <h1>Client: {client?.name}</h1>
@@ -95,9 +95,11 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({ clientId }) => {
 }
 
 // In your App component:
-{pattern === '/clients/:id' && routeParams?.id && (
-  <ClientDetail clientId={parseInt(routeParams.id)} />
-)}
+{
+  pattern === '/clients/:id' && routeParams?.id && (
+    <ClientDetail clientId={parseInt(routeParams.id)} />
+  )
+}
 ```
 
 ### Query Parameters
@@ -165,7 +167,7 @@ actions.router.updateParams({ params: { search: 'new search' } })
 Replace current URL without adding to history:
 
 ```typescript
-actions.router.redirectTo({ 
+actions.router.redirectTo({
   pattern: '/login',
   params: { returnUrl: window.location.pathname }
 })
@@ -181,7 +183,7 @@ Check conditions before navigation:
 // In your component
 const handleNavigateToEdit = () => {
   if (user.hasPermission('edit_client')) {
-    actions.router.navigateTo({ 
+    actions.router.navigateTo({
       pattern: '/clients/:id/edit',
       routeParams: { id: client.id.toString() }
     })
@@ -197,7 +199,7 @@ const handleNavigateToEdit = () => {
 // In your app initialization
 export const onInitializeOvermind = async ({ state, actions }: Context) => {
   const isAuthenticated = await actions.auth.checkSession()
-  
+
   if (!isAuthenticated) {
     actions.router.redirectTo({ pattern: '/login' })
   } else {
