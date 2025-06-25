@@ -1,0 +1,26 @@
+{
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "semi": false,
+  "arrowParens": "always",
+  "importOrder": [
+    "<BUILT_IN_MODULES>",
+    "",
+    "<THIRD_PARTY_MODULES>",
+    "",
+    "^@/(.*)$",
+    "^[.]"
+  ],
+  "importOrderTypeScriptVersion": "5.0.0",
+
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"],
+
+  "overrides": [
+    {
+      "files": "*.md",
+      "options": {
+        "trailingComma": "none"
+      }
+    }
+  ]
+}
