@@ -30,7 +30,10 @@ export const routes: RoutesT = {
 Add router initialization to your app's startup:
 
 ```typescript
-// src/overmind/app/app.actions.ts
+// src/overmind/app/actions.ts
+import type { Context } from '..'
+import { routes } from '../../routes'
+
 export const onInitializeOvermind = async ({ actions }: Context) => {
   // Initialize router with your routes
   actions.router.initializeRouter(routes)
