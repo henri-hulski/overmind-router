@@ -166,12 +166,11 @@ switch (router.current) {
 Route definition object.
 
 ```typescript
-type RoutesT = {
-  [pattern: string]: {
-    name: string
-    [key: string]: any
-  }
+type RouteConfigT = {
+  params?: string[]
 }
+
+type RoutesT = Record<string, RouteConfigT>
 
 // Example
 const routes: RoutesT = {
@@ -331,11 +330,7 @@ useEffect(() => {
       loadUserData(routeParams.id)
     }
   }
-}, [
-  router.current,
-  router.currentRoute?.pattern,
-  router.currentRoute?.routeParams
-])
+}, [router])
 ```
 
 ### Conditional Rendering
