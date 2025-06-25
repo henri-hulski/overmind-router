@@ -36,10 +36,10 @@ Complete router documentation is available at:
 
 Quick links:
 
-- [Setup Guide](./src/overmind/router/docs/SETUP.md)
-- [Usage Patterns](./src/overmind/router/docs/USAGE.md)
-- [API Reference](./src/overmind/router/docs/API.md)
-- [Examples](./src/overmind/router/docs/EXAMPLES.md)
+- [Setup Guide](./src/overmind/router/docs/setup.md)
+- [Usage Patterns](./src/overmind/router/docs/usage.md)
+- [API Reference](./src/overmind/router/docs/api.md)
+- [Examples](./src/overmind/router/docs/examples.md)
 
 ## Features
 

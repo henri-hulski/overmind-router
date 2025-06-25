@@ -602,6 +602,6 @@ These examples demonstrate real-world usage patterns for the Overmind router in 
 ## Where to go next
 
 - [Overview](../README.md)
-- [Setup the router](./SETUP.md)
-- [Learn basic usage patterns](./USAGE.md)
-- [Check the API reference](./API.md)
+- [Setup the router](./setup.md)
+- [Learn basic usage patterns](./usage.md)
+- [Check the API reference](./api.md)

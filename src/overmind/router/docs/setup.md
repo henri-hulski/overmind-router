@@ -137,6 +137,6 @@ Ensure your `tsconfig.json` includes the router types:
 ## Where to go next
 
 - [Overview](../README.md)
-- [Learn basic usage patterns](./USAGE.md)
-- [Check the API reference](./API.md)
-- [See complete examples](./EXAMPLES.md)
+- [Learn basic usage patterns](./usage.md)
+- [Check the API reference](./api.md)
+- [See complete examples](./examples.md)

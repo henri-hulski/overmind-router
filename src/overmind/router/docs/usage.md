@@ -220,6 +220,6 @@ export const onInitializeOvermind = async ({ state, actions }: Context) => {
 ## Where to go next
 
 - [Overview](../README.md)
-- [Setup the router](./SETUP.md)
-- [Check the API reference](./API.md)
-- [See complete examples](./EXAMPLES.md)
+- [Setup the router](./setup.md)
+- [Check the API reference](./api.md)
+- [See complete examples](./examples.md)

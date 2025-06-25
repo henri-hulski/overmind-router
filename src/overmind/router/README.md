@@ -14,10 +14,10 @@ A lightweight, state machine-driven router for Overmind applications with TypeSc
 
 ## Quick Start
 
-1. [Setup and Configuration](./docs/SETUP.md)
-2. [Basic Usage](./docs/USAGE.md)
-3. [API Reference](./docs/API.md)
-4. [Examples](./docs/EXAMPLES.md)
+1. [Setup and Configuration](./docs/setup.md)
+2. [Basic Usage](./docs/usage.md)
+3. [API Reference](./docs/api.md)
+4. [Examples](./docs/examples.md)
 
 ## Basic Example
 

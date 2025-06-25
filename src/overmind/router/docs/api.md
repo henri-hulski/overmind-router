@@ -361,6 +361,6 @@ const renderRoute = () => {
 ## Where to go next
 
 - [Overview](../README.md)
-- [Setup the router](./SETUP.md)
-- [Learn basic usage patterns](./USAGE.md)
-- [See complete examples](./EXAMPLES.md)
+- [Setup the router](./setup.md)
+- [Learn basic usage patterns](./usage.md)
+- [See complete examples](./examples.md)
