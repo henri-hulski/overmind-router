@@ -5,7 +5,7 @@ This guide shows how to set up the Overmind router in your React application.
 ## 1. Installation
 
 The router is included in this project. No additional packages needed.
-You should copy the `router` module from the `overmind` directory to your project.
+Copy the `router` module from the `overmind` directory into your project.
 
 ## 2. Define Routes
 
@@ -31,7 +31,7 @@ export const routes: RoutesT = {
 Add router initialization to your app's startup:
 
 ```typescript
-// src/overmind/app/actions.ts
+// src/overmind/app/app.actions.ts
 import type { Context } from '..'
 import { routes } from '../../routes'
 

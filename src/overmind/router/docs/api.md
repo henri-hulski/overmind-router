@@ -161,7 +161,7 @@ switch (router.current) {
 
 ## Types
 
-### `RoutesT`
+### `RouteConfigT` and `RoutesT`
 
 Route definition object.
 
