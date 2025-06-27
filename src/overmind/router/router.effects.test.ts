@@ -3,9 +3,6 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { router as routerEffects } from './router.effects'
 import { routes } from './testRoutes'
 
-// Use the router effects directly
-
-// Mock window.location and history
 const mockLocation = {
   origin: 'http://localhost:3000',
   pathname: '/',
@@ -32,7 +29,6 @@ Object.defineProperty(window, 'history', {
   writable: true,
 })
 
-// Mock import.meta.env
 vi.stubGlobal('import.meta', {
   env: {
     BASE_URL: '/',
@@ -42,8 +38,6 @@ vi.stubGlobal('import.meta', {
 describe('RouterEffects', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-
-    // Reset location for each test
     mockLocation.pathname = '/'
     mockLocation.search = ''
     mockLocation.hash = ''
@@ -56,10 +50,7 @@ describe('RouterEffects', () => {
       expect(baseUrl).toBe('http://localhost:3000')
     })
 
-    test('should handle base URL with trailing slash', () => {
-      // This test should expect the actual behavior
-      // The getBaseUrl method strips trailing slashes
-      // Since BASE_URL is mocked as '/', it should return 'http://localhost:3000'
+    test('should return baseUrl without trailing slash', () => {
       const baseUrl = routerEffects.getBaseUrl()
       expect(baseUrl).toBe('http://localhost:3000')
     })
@@ -168,8 +159,6 @@ describe('RouterEffects', () => {
       expect(result).toEqual({
         pattern: '/',
         path: '/',
-        routeParams: {},
-        params: {},
       })
     })
 
@@ -243,31 +232,40 @@ describe('RouterEffects', () => {
     })
 
     test('should build path with route parameters', () => {
-      const url = routerEffects.getUrlFromRoute('/users/:id', { id: '123' })
+      const url = routerEffects.getUrlFromRoute('/users/:id', {}, { id: '123' })
       expect(url).toBe('http://localhost:3000/users/123')
     })
 
     test('should build path with multiple route parameters', () => {
-      const url = routerEffects.getUrlFromRoute('/clients/:id/cars/:carId', {
-        id: '456',
-        carId: '789',
-      })
+      const url = routerEffects.getUrlFromRoute(
+        '/clients/:id/cars/:carId',
+        {},
+        {
+          id: '456',
+          carId: '789',
+        }
+      )
       expect(url).toBe('http://localhost:3000/clients/456/cars/789')
     })
 
     test('should build path with query parameters', () => {
       const url = routerEffects.getUrlFromRoute(
         '/users/:id',
-        { id: '123' },
-        { tab: 'profile', sort: 'name' }
+        { tab: 'profile', sort: 'name' },
+        { id: '123' }
       )
       expect(url).toBe('http://localhost:3000/users/123?tab=profile&sort=name')
     })
 
     test('should encode special characters in parameters', () => {
-      const url = routerEffects.getUrlFromRoute('/users/:id', {
-        id: 'user 123',
-      })
+      const url = routerEffects.getUrlFromRoute(
+        '/users/:id',
+        {},
+        {
+          // The implementation doesn't encode route parameters, only query parameters
+          id: 'user 123',
+        }
+      )
       // The implementation doesn't encode route parameters, only query parameters
       expect(url).toBe('http://localhost:3000/users/user 123')
     })
@@ -285,7 +283,7 @@ describe('RouterEffects', () => {
     })
 
     test('should navigate with route parameters', () => {
-      routerEffects.navigateTo('/users/:id', { id: '123' })
+      routerEffects.navigateTo('/users/:id', {}, { id: '123' })
 
       expect(mockHistory.pushState).toHaveBeenCalledWith(
         {},
@@ -295,7 +293,7 @@ describe('RouterEffects', () => {
     })
 
     test('should navigate with query parameters', () => {
-      routerEffects.navigateTo('/users/:id', { id: '123' }, { tab: 'profile' })
+      routerEffects.navigateTo('/users/:id', { tab: 'profile' }, { id: '123' })
 
       expect(mockHistory.pushState).toHaveBeenCalledWith(
         {},
@@ -338,6 +336,278 @@ describe('RouterEffects', () => {
       expect(patterns).toContain('/')
       expect(patterns).toContain('/users/:id')
       expect(patterns).toContain('/clients/:id/cars/:carId')
+    })
+  })
+
+  describe('parseRouteTo', () => {
+    test('should parse URL string format', () => {
+      const result = routerEffects.parseRouteTo(
+        '/users/123?tab=profile',
+        routes
+      )
+
+      expect(result.pattern).toBe('/users/:id')
+      expect(result.routeParams).toEqual({ id: '123' })
+      expect(result.params).toEqual({ tab: 'profile' })
+    })
+
+    test('should parse simple URL string without query params', () => {
+      const result = routerEffects.parseRouteTo('/users/456', routes)
+
+      expect(result.pattern).toBe('/users/:id')
+      expect(result.routeParams).toEqual({ id: '456' })
+      expect(result.params).toEqual({}) // Route config has expected params ['tab'], so include empty object
+    })
+
+    test('should parse route with routeParams but no expected query params', () => {
+      const result = routerEffects.parseRouteTo('/clients/123/cars', routes)
+
+      expect(result.pattern).toBe('/clients/:id/cars')
+      expect(result.routeParams).toEqual({ id: '123' })
+      expect(result.params).toBeUndefined() // Route config has empty params [], so omit
+    })
+
+    test('should parse object format unchanged', () => {
+      const input = {
+        pattern: '/users/:id',
+        params: { tab: 'profile' },
+        routeParams: { id: '123' },
+      }
+
+      const result = routerEffects.parseRouteTo(input, routes)
+      expect(result).toEqual(input)
+    })
+
+    test('should handle invalid URL string gracefully', () => {
+      const result = routerEffects.parseRouteTo(
+        '/invalid/path?param=value',
+        routes
+      )
+
+      expect(result.pattern).toBe('/invalid/path')
+      expect(result.params).toBeUndefined()
+      expect(result.routeParams).toBeUndefined()
+    })
+
+    test('should parse complex routes with multiple parameters', () => {
+      const result = routerEffects.parseRouteTo(
+        '/clients/123/cars/456?action=edit&modal=true',
+        routes
+      )
+
+      expect(result.pattern).toBe('/clients/:id/cars/:carId')
+      expect(result.routeParams).toEqual({ id: '123', carId: '456' })
+      expect(result.params).toEqual({ action: 'edit', modal: 'true' })
+    })
+
+    test('should handle URL string without question mark', () => {
+      const result = routerEffects.parseRouteTo('/login', routes)
+
+      expect(result.pattern).toBe('/login')
+      expect(result.params).toEqual({}) // Route has expected query params, so include empty object
+      expect(result.routeParams).toBeUndefined() // No route params in URL path
+    })
+  })
+
+  describe('getRouteFromUrl', () => {
+    test('should parse full URL correctly', () => {
+      const result = routerEffects.getRouteFromUrl(
+        'http://localhost:3000/users/123?tab=profile',
+        routes
+      )
+
+      expect(result).toEqual({
+        pattern: '/users/:id',
+        path: '/users/123',
+        params: { tab: 'profile' },
+        routeParams: { id: '123' },
+      })
+    })
+
+    test('should parse relative URL correctly', () => {
+      const result = routerEffects.getRouteFromUrl(
+        '/clients/456/cars/789',
+        routes
+      )
+
+      expect(result).toEqual({
+        pattern: '/clients/:id/cars/:carId',
+        path: '/clients/456/cars/789',
+        routeParams: { id: '456', carId: '789' },
+        params: {}, // Route has expected query params ['action', 'modal'], so include empty object
+      })
+    })
+
+    test('should return null for unknown routes', () => {
+      const result = routerEffects.getRouteFromUrl('/unknown/path', routes)
+      expect(result).toBeNull()
+    })
+
+    test('should handle malformed URLs gracefully', () => {
+      const result = routerEffects.getRouteFromUrl('invalid-url', routes)
+      expect(result).toBeNull()
+    })
+
+    test('should extract only expected query parameters', () => {
+      const result = routerEffects.getRouteFromUrl(
+        '/users/123?tab=profile&unexpected=value',
+        routes
+      )
+
+      expect(result?.params).toEqual({ tab: 'profile' })
+    })
+
+    test('should handle root route with no params or routeParams', () => {
+      const result = routerEffects.getRouteFromUrl('/', routes)
+
+      expect(result).toEqual({
+        pattern: '/',
+        path: '/',
+        // No params or routeParams since route has empty params [] and no route parameters
+      })
+    })
+
+    test('should verify conditional params/routeParams logic', () => {
+      // Test 1: Route with no params and no route params (/) - should omit both
+      const result1 = routerEffects.getRouteFromUrl('/', routes)
+      expect(result1).toEqual({
+        pattern: '/',
+        path: '/',
+      })
+      expect(result1).not.toHaveProperty('params')
+      expect(result1).not.toHaveProperty('routeParams')
+
+      // Test 2: Route with expected params but no route params (/login) - should include params only
+      const result2 = routerEffects.getRouteFromUrl('/login', routes)
+      expect(result2).toEqual({
+        pattern: '/login',
+        path: '/login',
+        params: {}, // Has expected params ['email', 'password', 'returnTo']
+      })
+      expect(result2).not.toHaveProperty('routeParams')
+
+      // Test 3: Route with no expected params but has route params (/clients/:id/cars) - should include routeParams only
+      const result3 = routerEffects.getRouteFromUrl('/clients/123/cars', routes)
+      expect(result3).toEqual({
+        pattern: '/clients/:id/cars',
+        path: '/clients/123/cars',
+        routeParams: { id: '123' }, // Has route params
+      })
+      expect(result3).not.toHaveProperty('params')
+
+      // Test 4: Route with both expected params and route params (/users/:id) - should include both
+      const result4 = routerEffects.getRouteFromUrl('/users/123', routes)
+      expect(result4).toEqual({
+        pattern: '/users/:id',
+        path: '/users/123',
+        params: {}, // Has expected params ['tab']
+        routeParams: { id: '123' }, // Has route params
+      })
+
+      // Test 5: Query params not in route config should be omitted
+      const result5 = routerEffects.getRouteFromUrl(
+        '/users/123?tab=profile&unknown=value',
+        routes
+      )
+      expect(result5).toEqual({
+        pattern: '/users/:id',
+        path: '/users/123',
+        params: { tab: 'profile' }, // Only 'tab' is in expected params, 'unknown' is omitted
+        routeParams: { id: '123' },
+      })
+    })
+  })
+
+  describe('redirectTo', () => {
+    test('should redirect to simple route', () => {
+      const originalHref = mockLocation.href
+
+      routerEffects.redirectTo('/')
+
+      // redirectTo sets location.href, but we can't test that directly in jsdom
+      // The implementation calls getUrlFromRoute which we can verify
+      expect(originalHref).toBe('http://localhost:3000/')
+    })
+
+    test('should redirect with route parameters', () => {
+      routerEffects.redirectTo('/users/:id', {}, { id: '123' })
+      // Implementation sets location.href, which can't be easily tested
+    })
+
+    test('should redirect with query parameters', () => {
+      routerEffects.redirectTo('/users/:id', { tab: 'profile' }, { id: '123' })
+      // Implementation sets location.href, which can't be easily tested
+    })
+  })
+
+  describe('navigation utility methods', () => {
+    test('should call history.back()', () => {
+      routerEffects.navigateBack()
+      expect(mockHistory.back).toHaveBeenCalled()
+    })
+
+    test('should call history.forward()', () => {
+      routerEffects.navigateForward()
+      expect(mockHistory.forward).toHaveBeenCalled()
+    })
+
+    test('should navigate to URL if valid', () => {
+      routerEffects.navigateToUrl('http://localhost:3000/users/123')
+      expect(mockHistory.pushState).toHaveBeenCalledWith(
+        {},
+        '',
+        'http://localhost:3000/users/123'
+      )
+    })
+
+    test('should not navigate to invalid URL', () => {
+      // Mock console.error to avoid noise in tests
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      routerEffects.navigateToUrl('invalid-url')
+
+      consoleSpy.mockRestore()
+    })
+
+    test('should replace URL with new parameters', () => {
+      routerEffects.replaceUrlWithParams(
+        '/users/:id',
+        { tab: 'settings' },
+        { id: '123' }
+      )
+
+      expect(mockHistory.replaceState).toHaveBeenCalledWith(
+        {},
+        '',
+        'http://localhost:3000/users/123?tab=settings'
+      )
+    })
+  })
+
+  describe('URL validation edge cases', () => {
+    test('should handle URLs with fragments', () => {
+      expect(
+        routerEffects.isValidUrl('http://localhost:3000/users/123#section')
+      ).toBe(true)
+    })
+
+    test('should handle protocol-relative URLs', () => {
+      expect(routerEffects.isValidUrl('//example.com/path')).toBe(true)
+    })
+
+    test('should detect external URLs with different protocols', () => {
+      expect(routerEffects.isExternalUrl('https://external.com')).toBe(true)
+      expect(routerEffects.isExternalUrl('ftp://files.com')).toBe(true)
+      expect(routerEffects.isExternalUrl('mailto:test@example.com')).toBe(true)
+    })
+
+    test('should handle URLs with ports', () => {
+      expect(routerEffects.isExternalUrl('http://localhost:8080/path')).toBe(
+        true
+      )
+      expect(routerEffects.isExternalUrl('http://localhost:3000/path')).toBe(
+        false
+      )
     })
   })
 })

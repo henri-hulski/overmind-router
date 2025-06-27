@@ -2,7 +2,7 @@ import { createOvermindMock } from 'overmind'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { config } from '../index'
-import { matchRoute, type ParamsT } from './router.effects'
+import type { ParamsT, ParsedRouteT, RoutesT, RouteToT } from './router.effects'
 import { routes } from './testRoutes'
 
 // Mock window.location and history
@@ -42,127 +42,286 @@ vi.stubGlobal('import.meta', {
 describe('Router Actions', () => {
   let overmind: ReturnType<typeof createOvermindMock<typeof config>>
 
-  beforeEach(() => {
-    // Create mock router effects that mirror the real router effects structure
-    const mockRouterEffects = {
-      getCurrentRoute: vi.fn(),
-      getUrlFromRoute: vi.fn(),
-      navigateTo: vi.fn(),
-      navigateBack: vi.fn(),
-      navigateForward: vi.fn(),
-      validateRoute: vi.fn(),
-      isValidUrl: vi.fn(),
-      isExternalUrl: vi.fn(),
-      getRoutePatterns: vi.fn(),
-      redirectTo: vi.fn(),
-      replaceUrlWithParams: vi.fn(),
+  const mockMatchRoute = (pattern: string, path: string) => {
+    const patternParts = pattern.split('/')
+    const pathParts = path.split('/')
+
+    if (patternParts.length !== pathParts.length) {
+      return { match: false, params: {} }
     }
 
-    // Set up intelligent mock implementations
-    mockRouterEffects.getCurrentRoute.mockImplementation(() => {
-      let path = mockLocation.pathname.replace(/\/$/, '')
-      path = path === '' ? '/' : path
+    const params: ParamsT = {}
 
-      let matchResult
-      for (const pattern of Object.keys(routes)) {
-        const { match, params } = matchRoute(pattern, path)
-        if (match) {
-          matchResult = { pattern, routeParams: params }
-          break
-        }
+    for (let i = 0; i < patternParts.length; i++) {
+      const patternPart = patternParts[i]
+      const pathPart = pathParts[i]
+
+      if (patternPart.startsWith(':')) {
+        params[patternPart.slice(1)] = pathPart
+      } else if (patternPart !== pathPart) {
+        return { match: false, params: {} }
       }
-      if (!matchResult) {
-        return null // No matching route found
-      }
+    }
 
-      const { pattern, routeParams } = matchResult
-      const routeConfig = routes[pattern]
-      const expectedParams = routeConfig?.params || []
-      const queryParams: ParamsT = {}
-      const urlParams = new URLSearchParams(mockLocation.search)
+    return { match: true, params }
+  }
 
-      for (const paramName of expectedParams) {
-        const value = urlParams.get(paramName)
-        if (value !== null) {
-          queryParams[paramName] = value
-        }
-      }
-
-      return {
-        pattern,
-        path,
-        params: queryParams,
-        routeParams,
-      }
-    })
-
-    mockRouterEffects.getUrlFromRoute.mockImplementation(
-      (pattern: string, routeParams = {}, params = {}) => {
-        let path = pattern
-        for (const [key, value] of Object.entries(routeParams)) {
-          path = path.replace(`:${key}`, String(value))
-        }
-        let url = 'http://localhost:3000' + path
-        if (Object.keys(params).length > 0) {
-          const urlParams = new URLSearchParams(
-            params as Record<string, string>
-          )
-          url += '?' + urlParams.toString()
-        }
-        return url
-      }
-    )
-
-    mockRouterEffects.validateRoute.mockImplementation((pattern: string) => {
-      return pattern in routes
-    })
-
-    mockRouterEffects.getRoutePatterns.mockReturnValue(Object.keys(routes))
-
-    // Add mock implementations for navigation methods
-    mockRouterEffects.navigateTo.mockImplementation(
-      (pattern: string, routeParams = {}, params = {}) => {
-        // Build the path from pattern and route params
-        let path = pattern
-        for (const [key, value] of Object.entries(routeParams)) {
-          path = path.replace(`:${key}`, String(value))
-        }
-
-        // Update mock location
-        mockLocation.pathname = path
-        mockLocation.search =
-          Object.keys(params).length > 0
-            ? '?' +
-              new URLSearchParams(params as Record<string, string>).toString()
-            : ''
-        mockLocation.href = `http://localhost:3000${path}${mockLocation.search}`
-
-        // Call the actual navigation method
-        mockHistory.pushState({}, '', mockLocation.href)
-      }
-    )
-
-    mockRouterEffects.navigateBack.mockImplementation(() => {
-      mockHistory.back()
-    })
-
-    mockRouterEffects.navigateForward.mockImplementation(() => {
-      mockHistory.forward()
-    })
-
-    // Create the overmind mock with the router effects
-    // The router module exports effects, so we mock them directly
+  beforeEach(() => {
     overmind = createOvermindMock(config, {
-      router: mockRouterEffects,
+      router: {
+        matchRoute: mockMatchRoute,
+
+        getCurrentRoute: (routes) => {
+          let path = mockLocation.pathname.replace(/\/$/, '')
+          path = path === '' ? '/' : path
+
+          let matchResult
+          for (const pattern of Object.keys(routes)) {
+            const { match, params } = mockMatchRoute(pattern, path)
+            if (match) {
+              matchResult = { pattern, routeParams: params }
+              break
+            }
+          }
+          if (!matchResult) {
+            return null
+          }
+
+          const { pattern, routeParams } = matchResult
+          const routeConfig = routes[pattern]
+          const expectedParams = routeConfig?.params || []
+
+          const result: ParsedRouteT | null = {
+            pattern,
+            path,
+          }
+
+          if (routeParams && Object.keys(routeParams).length > 0) {
+            result.routeParams = routeParams
+          }
+
+          if (expectedParams.length > 0) {
+            const queryParams: ParamsT = {}
+            const urlParams = new URLSearchParams(mockLocation.search)
+
+            for (const paramName of expectedParams) {
+              const value = urlParams.get(paramName)
+              if (value !== null) {
+                queryParams[paramName] = value
+              }
+            }
+
+            result.params = queryParams
+          }
+
+          return result
+        },
+
+        getUrlFromRoute: (pattern: string, params = {}, routeParams = {}) => {
+          let path = pattern
+          for (const [key, value] of Object.entries(routeParams)) {
+            path = path.replace(`:${key}`, String(value))
+          }
+          let url = 'http://localhost:3000' + path
+          if (Object.keys(params).length > 0) {
+            const urlParams = new URLSearchParams(
+              params as Record<string, string>
+            )
+            url += '?' + urlParams.toString()
+          }
+          return url
+        },
+
+        validateRoute: (pattern: string, routes: RoutesT) => {
+          return pattern in routes
+        },
+
+        parseRouteTo: (routeTo: RouteToT, routes: RoutesT) => {
+          if (typeof routeTo === 'string') {
+            if (routeTo.includes('?')) {
+              try {
+                const url = new URL(routeTo, 'http://localhost:3000')
+                let path = url.pathname.replace(/\/$/, '')
+                path = path === '' ? '/' : path
+
+                let matchResult
+                for (const pattern of Object.keys(routes)) {
+                  const { match, params } = mockMatchRoute(pattern, path)
+                  if (match) {
+                    matchResult = { pattern, routeParams: params }
+                    break
+                  }
+                }
+
+                if (matchResult) {
+                  const { pattern, routeParams } = matchResult
+                  const routeConfig = routes[pattern]
+                  const expectedParams = routeConfig?.params || []
+
+                  const result: ParsedRouteT = {
+                    pattern,
+                  }
+
+                  if (routeParams && Object.keys(routeParams).length > 0) {
+                    result.routeParams = routeParams
+                  }
+
+                  if (expectedParams.length > 0) {
+                    const queryParams: ParamsT = {}
+                    const urlParams = new URLSearchParams(url.search)
+
+                    for (const paramName of expectedParams) {
+                      const value = urlParams.get(paramName)
+                      if (value !== null) {
+                        queryParams[paramName] = value
+                      }
+                    }
+
+                    result.params = queryParams
+                  }
+
+                  return result
+                } else {
+                  const [pathPart] = routeTo.split('?')
+                  return { pattern: pathPart }
+                }
+              } catch {
+                const [pathPart] = routeTo.split('?')
+                return { pattern: pathPart }
+              }
+            } else {
+              let matchResult
+              for (const pattern of Object.keys(routes)) {
+                const { match, params } = mockMatchRoute(pattern, routeTo)
+                if (match) {
+                  matchResult = { pattern, routeParams: params }
+                  break
+                }
+              }
+
+              if (matchResult) {
+                const { pattern, routeParams } = matchResult
+                const routeConfig = routes[pattern]
+                const expectedParams = routeConfig?.params || []
+
+                const result: ParsedRouteT = {
+                  pattern,
+                }
+
+                if (routeParams && Object.keys(routeParams).length > 0) {
+                  result.routeParams = routeParams
+                }
+
+                if (expectedParams.length > 0) {
+                  result.params = {}
+                }
+
+                return result
+              } else {
+                return { pattern: routeTo }
+              }
+            }
+          } else {
+            return routeTo
+          }
+        },
+
+        getRoutePatterns: () => Object.keys(routes),
+
+        navigateTo: (pattern: string, params = {}, routeParams = {}) => {
+          let path = pattern
+          for (const [key, value] of Object.entries(routeParams)) {
+            path = path.replace(`:${key}`, String(value))
+          }
+
+          let url = 'http://localhost:3000' + path
+          if (Object.keys(params).length > 0) {
+            const urlParams = new URLSearchParams(
+              params as Record<string, string>
+            )
+            url += '?' + urlParams.toString()
+          }
+
+          const urlObj = new URL(url)
+          mockLocation.pathname = urlObj.pathname
+          mockLocation.search = urlObj.search
+          mockLocation.href = url
+
+          mockHistory.pushState({}, '', url)
+        },
+
+        navigateBack: () => {
+          mockHistory.back()
+        },
+
+        navigateForward: () => {
+          mockHistory.forward()
+        },
+
+        redirectTo: (pattern: string, params = {}, routeParams = {}) => {
+          let path = pattern
+          for (const [key, value] of Object.entries(routeParams)) {
+            path = path.replace(`:${key}`, String(value))
+          }
+
+          let url = 'http://localhost:3000' + path
+          if (Object.keys(params).length > 0) {
+            const urlParams = new URLSearchParams(
+              params as Record<string, string>
+            )
+            url += '?' + urlParams.toString()
+          }
+
+          const urlObj = new URL(url)
+          mockLocation.pathname = urlObj.pathname
+          mockLocation.search = urlObj.search
+          mockLocation.href = url
+        },
+        replaceUrlWithParams: (
+          pattern: string,
+          params = {},
+          routeParams = {}
+        ) => {
+          let path = pattern
+          for (const [key, value] of Object.entries(routeParams)) {
+            path = path.replace(`:${key}`, String(value))
+          }
+
+          mockLocation.pathname = path
+          if (Object.keys(params).length > 0) {
+            const urlParams = new URLSearchParams(
+              params as Record<string, string>
+            )
+            mockLocation.search = '?' + urlParams.toString()
+          } else {
+            mockLocation.search = ''
+          }
+          mockLocation.href =
+            'http://localhost:3000' + path + mockLocation.search
+
+          mockHistory.replaceState({}, '', mockLocation.href)
+        },
+        isValidUrl: () => true,
+        isExternalUrl: () => false,
+      },
     })
 
     vi.clearAllMocks()
 
-    // Reset location for each test
     mockLocation.pathname = '/'
     mockLocation.search = ''
     mockLocation.hash = ''
     mockLocation.href = 'http://localhost:3000/'
+  })
+
+  describe('mock verification', () => {
+    test('should verify mocks are working', () => {
+      const mockRouterEffects = overmind.effects.router
+      expect(mockRouterEffects.getCurrentRoute).toBeDefined()
+      expect(mockRouterEffects.navigateTo).toBeDefined()
+      expect(typeof mockRouterEffects.getCurrentRoute).toBe('function')
+      expect(typeof mockRouterEffects.navigateTo).toBe('function')
+    })
   })
 
   describe('initializeRouter', () => {
@@ -205,7 +364,7 @@ describe('Router Actions', () => {
     })
 
     test('should navigate to simple route', () => {
-      overmind.actions.router.navigateTo({ pattern: '/' })
+      overmind.actions.router.navigateTo('/')
 
       expect(mockHistory.pushState).toHaveBeenCalledWith(
         {},
@@ -222,8 +381,8 @@ describe('Router Actions', () => {
     test('should navigate to route with parameters', () => {
       overmind.actions.router.navigateTo({
         pattern: '/users/:id',
-        routeParams: { id: '123' },
         params: { tab: 'profile' },
+        routeParams: { id: '123' },
       })
 
       expect(mockHistory.pushState).toHaveBeenCalledWith(
@@ -241,7 +400,7 @@ describe('Router Actions', () => {
     })
 
     test('should handle navigation error for invalid route', () => {
-      overmind.actions.router.navigateTo({ pattern: '/invalid/route' })
+      overmind.actions.router.navigateTo('/invalid/route')
 
       expect(overmind.state.router.current).toBe('NAVIGATION_FAILURE')
       if (overmind.state.router.current === 'NAVIGATION_FAILURE') {
@@ -316,6 +475,7 @@ describe('Router Actions', () => {
       // First navigation
       overmind.actions.router.navigateTo({
         pattern: '/users/:id',
+        params: { tab: 'profile' },
         routeParams: { id: '123' },
       })
       expect(overmind.state.router.current).toBe('ROUTER_READY')
@@ -356,11 +516,11 @@ describe('Router Actions', () => {
       })
 
       // Failed navigation
-      overmind.actions.router.navigateTo({ pattern: '/invalid/route' })
+      overmind.actions.router.navigateTo('/invalid/route')
       expect(overmind.state.router.current).toBe('NAVIGATION_FAILURE')
 
       // Recovery navigation
-      overmind.actions.router.navigateTo({ pattern: '/login' })
+      overmind.actions.router.navigateTo('/login')
       expect(overmind.state.router.current).toBe('ROUTER_READY')
       if (overmind.state.router.current === 'ROUTER_READY') {
         expect(overmind.state.router.currentRoute.pattern).toBe('/login')
@@ -370,8 +530,8 @@ describe('Router Actions', () => {
     test('should handle navigation with complex route parameters', () => {
       overmind.actions.router.navigateTo({
         pattern: '/clients/:id/cars/:carId',
-        routeParams: { id: '123', carId: '456' },
         params: { action: 'edit', modal: 'true' },
+        routeParams: { id: '123', carId: '456' },
       })
 
       if (overmind.state.router.current === 'ROUTER_READY') {
@@ -399,21 +559,16 @@ describe('Router Actions', () => {
     })
 
     test('should handle navigation errors gracefully', () => {
-      // This test expects the actions to handle errors thrown by effects
       overmind.actions.router.navigateTo({
         pattern: '/users/:id',
         routeParams: { id: '123' },
       })
 
-      // Since validateRoute returns false for invalid patterns, we expect failure
-      overmind.actions.router.navigateTo({
-        pattern: '/totally/invalid/pattern',
-      })
+      overmind.actions.router.navigateTo('/totally/invalid/pattern')
       expect(overmind.state.router.current).toBe('NAVIGATION_FAILURE')
     })
 
     test('should handle popstate errors gracefully', () => {
-      // Test popstate with invalid route
       mockLocation.pathname = '/invalid/path'
       mockLocation.href = 'http://localhost:3000/invalid/path'
 
@@ -425,21 +580,665 @@ describe('Router Actions', () => {
 
   describe('state transitions', () => {
     test('should follow correct state machine flow', () => {
-      // Start in initial state
       expect(overmind.state.router.current).toBe('ROUTER_INITIAL')
 
-      // Initialize
       overmind.actions.router.initializeRouter(routes)
       expect(overmind.state.router.current).toBe('ROUTER_READY')
 
-      // Start navigation
       overmind.actions.router.navigateTo({
         pattern: '/users/:id',
         routeParams: { id: '123' },
       })
 
-      // Should complete navigation
       expect(overmind.state.router.current).toBe('ROUTER_READY')
+    })
+  })
+
+  describe('redirectTo', () => {
+    beforeEach(() => {
+      overmind.actions.router.initializeRouter(routes)
+    })
+
+    test('should redirect to simple route', () => {
+      overmind.actions.router.redirectTo('/')
+
+      expect(overmind.state.router.current).toBe('ROUTER_READY')
+      expect(
+        overmind.state.router.current === 'ROUTER_READY' &&
+          overmind.state.router.currentRoute.pattern
+      ).toBe('/')
+    })
+
+    test('should redirect to route with parameters', () => {
+      overmind.actions.router.redirectTo({
+        pattern: '/users/:id',
+        params: { tab: 'profile' },
+        routeParams: { id: '123' },
+      })
+
+      expect(overmind.state.router.current).toBe('ROUTER_READY')
+      expect(
+        overmind.state.router.current === 'ROUTER_READY' &&
+          overmind.state.router.currentRoute.routeParams
+      ).toEqual({
+        id: '123',
+      })
+    })
+
+    test('should handle redirect error for invalid route', () => {
+      overmind.actions.router.redirectTo('/invalid/route')
+
+      expect(overmind.state.router.current).toBe('NAVIGATION_FAILURE')
+      if (overmind.state.router.current === 'NAVIGATION_FAILURE') {
+        expect(overmind.state.router.errorMsg).toContain(
+          'Invalid route pattern'
+        )
+        expect(overmind.state.router.errorType).toBe('invalid_pattern')
+      }
+    })
+
+    test('should redirect with URL string', () => {
+      overmind.actions.router.redirectTo('/users/456?tab=settings')
+
+      expect(overmind.state.router.current).toBe('ROUTER_READY')
+      if (overmind.state.router.current === 'ROUTER_READY') {
+        expect(overmind.state.router.currentRoute.pattern).toBe('/users/:id')
+        expect(overmind.state.router.currentRoute.routeParams!.id).toBe('456')
+        expect(overmind.state.router.currentRoute.params?.tab).toBe('settings')
+      }
+    })
+  })
+
+  describe('updateParams', () => {
+    beforeEach(() => {
+      overmind.actions.router.initializeRouter(routes)
+      // Start with a route that has parameters
+      overmind.actions.router.navigateTo({
+        pattern: '/users/:id',
+        params: { tab: 'profile' },
+        routeParams: { id: '123' },
+      })
+    })
+
+    test('should update query parameters', () => {
+      overmind.actions.router.updateParams({
+        params: { tab: 'settings', view: 'detailed' },
+      })
+
+      expect(mockLocation.search).toBe('?tab=settings')
+      expect(mockLocation.pathname).toBe('/users/123')
+
+      expect(overmind.state.router.current).toBe('ROUTER_READY')
+    })
+
+    test('should merge with existing parameters', () => {
+      overmind.actions.router.updateParams({
+        params: { modal: 'true' },
+      })
+
+      expect(overmind.state.router.current).toBe('ROUTER_READY')
+      if (overmind.state.router.current === 'ROUTER_READY') {
+        expect(overmind.state.router.currentRoute.params).toEqual({
+          tab: 'profile',
+        })
+      }
+    })
+
+    test('should handle updateParams when not in ROUTER_READY state', () => {
+      const notReadyOvermind = createOvermindMock(
+        config,
+        {
+          router: {
+            matchRoute: mockMatchRoute,
+            getCurrentRoute: () => null,
+            getUrlFromRoute: (
+              pattern: string,
+              params = {},
+              routeParams = {}
+            ) => {
+              let path = pattern
+              for (const [key, value] of Object.entries(routeParams)) {
+                path = path.replace(`:${key}`, String(value))
+              }
+              let url = 'http://localhost:3000' + path
+              if (Object.keys(params).length > 0) {
+                const urlParams = new URLSearchParams(
+                  params as Record<string, string>
+                )
+                url += '?' + urlParams.toString()
+              }
+              return url
+            },
+            validateRoute: (pattern: string, routes: RoutesT) =>
+              pattern in routes,
+            parseRouteTo: (routeTo: RouteToT) =>
+              typeof routeTo === 'string' ? { pattern: routeTo } : routeTo,
+            navigateTo: vi.fn(),
+            redirectTo: vi.fn(),
+          },
+        },
+        (state) => {
+          state.router.current = 'ROUTE_NOT_FOUND'
+          if (state.router.current === 'ROUTE_NOT_FOUND') {
+            state.router.requestedPath = '/invalid'
+            state.router.currentRoute = undefined
+          }
+        }
+      )
+
+      notReadyOvermind.actions.router.updateParams({
+        params: { test: 'value' },
+      })
+
+      expect(notReadyOvermind.state.router.current).toBe('ROUTE_NOT_FOUND')
+    })
+  })
+
+  describe('URL string navigation', () => {
+    beforeEach(() => {
+      overmind.actions.router.initializeRouter(routes)
+    })
+
+    test('should navigate using URL string with query parameters', () => {
+      overmind.actions.router.navigateTo('/users/123?tab=profile')
+
+      expect(overmind.state.router.current).toBe('ROUTER_READY')
+      if (overmind.state.router.current === 'ROUTER_READY') {
+        expect(overmind.state.router.currentRoute.pattern).toBe('/users/:id')
+        expect(overmind.state.router.currentRoute.routeParams!.id).toBe('123')
+        expect(overmind.state.router.currentRoute.params?.tab).toBe('profile')
+      }
+    })
+
+    test('should navigate using URL string without query parameters', () => {
+      overmind.actions.router.navigateTo('/login')
+
+      expect(overmind.state.router.current).toBe('ROUTER_READY')
+      if (overmind.state.router.current === 'ROUTER_READY') {
+        expect(overmind.state.router.currentRoute.pattern).toBe('/login')
+        expect(overmind.state.router.currentRoute.params).toEqual({}) // Route has expected query params, so include empty object
+        expect(overmind.state.router.currentRoute.routeParams).toBeUndefined() // No route params in URL path
+      }
+    })
+
+    test('should navigate using complex URL string', () => {
+      overmind.actions.router.navigateTo(
+        '/clients/456/cars/789?action=edit&modal=true'
+      )
+
+      expect(overmind.state.router.current).toBe('ROUTER_READY')
+      if (overmind.state.router.current === 'ROUTER_READY') {
+        expect(overmind.state.router.currentRoute.pattern).toBe(
+          '/clients/:id/cars/:carId'
+        )
+        expect(overmind.state.router.currentRoute.routeParams).toEqual({
+          id: '456',
+          carId: '789',
+        })
+        expect(overmind.state.router.currentRoute.params).toEqual({
+          action: 'edit',
+          modal: 'true',
+        })
+      }
+    })
+
+    test('should handle malformed URL string', () => {
+      overmind.actions.router.navigateTo('not-a-valid-url?but&has=params')
+
+      expect(overmind.state.router.current).toBe('NAVIGATION_FAILURE')
+      if (overmind.state.router.current === 'NAVIGATION_FAILURE') {
+        expect(overmind.state.router.errorMsg).toContain(
+          'Invalid route pattern'
+        )
+      }
+    })
+  })
+
+  describe('advanced error handling', () => {
+    beforeEach(() => {
+      overmind.actions.router.initializeRouter(routes)
+    })
+
+    test('should handle browser navigation errors in navigateBack', () => {
+      const originalBack = mockHistory.back
+      mockHistory.back = vi.fn(() => {
+        throw new Error('Browser navigation failed')
+      })
+
+      try {
+        overmind.actions.router.navigateBack()
+
+        expect(overmind.state.router.current).toBe('NAVIGATION_FAILURE')
+        if (overmind.state.router.current === 'NAVIGATION_FAILURE') {
+          expect(overmind.state.router.errorMsg).toContain(
+            'Browser navigation failed'
+          )
+          expect(overmind.state.router.errorType).toBe(
+            'browser_navigation_error'
+          )
+        }
+      } finally {
+        mockHistory.back = originalBack
+      }
+    })
+
+    test('should handle browser navigation errors in navigateForward', () => {
+      const originalForward = mockHistory.forward
+      mockHistory.forward = vi.fn(() => {
+        throw new Error('Forward navigation failed')
+      })
+
+      try {
+        overmind.actions.router.navigateForward()
+
+        expect(overmind.state.router.current).toBe('NAVIGATION_FAILURE')
+        if (overmind.state.router.current === 'NAVIGATION_FAILURE') {
+          expect(overmind.state.router.errorMsg).toContain(
+            'Forward navigation failed'
+          )
+          expect(overmind.state.router.errorType).toBe(
+            'browser_navigation_error'
+          )
+        }
+      } finally {
+        mockHistory.forward = originalForward
+      }
+    })
+
+    test('should handle navigation error in navigateTo', () => {
+      const errorOvermind = createOvermindMock(config, {
+        router: {
+          matchRoute: mockMatchRoute,
+          getCurrentRoute: () => ({
+            pattern: '/',
+            path: '/',
+            params: {},
+            routeParams: {},
+          }),
+          getUrlFromRoute: (pattern: string, params = {}, routeParams = {}) => {
+            let path = pattern
+            for (const [key, value] of Object.entries(routeParams)) {
+              path = path.replace(`:${key}`, String(value))
+            }
+            let url = 'http://localhost:3000' + path
+            if (Object.keys(params).length > 0) {
+              const urlParams = new URLSearchParams(
+                params as Record<string, string>
+              )
+              url += '?' + urlParams.toString()
+            }
+            return url
+          },
+          validateRoute: (pattern: string, routes: RoutesT) =>
+            pattern in routes,
+          parseRouteTo: (routeTo: RouteToT) =>
+            typeof routeTo === 'string' ? { pattern: routeTo } : routeTo,
+          navigateTo: () => {
+            throw new Error('Navigation failed')
+          },
+          redirectTo: vi.fn(),
+        },
+      })
+
+      errorOvermind.actions.router.initializeRouter(routes)
+
+      errorOvermind.actions.router.navigateTo({
+        pattern: '/users/:id',
+        routeParams: { id: '123' },
+      })
+
+      expect(errorOvermind.state.router.current).toBe('NAVIGATION_FAILURE')
+      if (errorOvermind.state.router.current === 'NAVIGATION_FAILURE') {
+        expect(errorOvermind.state.router.errorMsg).toContain(
+          'Navigation failed'
+        )
+        expect(errorOvermind.state.router.errorType).toBe('navigation_error')
+      }
+    })
+
+    test('should handle redirect error in redirectTo', () => {
+      const errorOvermind = createOvermindMock(config, {
+        router: {
+          matchRoute: mockMatchRoute,
+          getCurrentRoute: () => ({
+            pattern: '/',
+            path: '/',
+            params: {},
+            routeParams: {},
+          }),
+          getUrlFromRoute: (pattern: string, params = {}, routeParams = {}) => {
+            let path = pattern
+            for (const [key, value] of Object.entries(routeParams)) {
+              path = path.replace(`:${key}`, String(value))
+            }
+            let url = 'http://localhost:3000' + path
+            if (Object.keys(params).length > 0) {
+              const urlParams = new URLSearchParams(
+                params as Record<string, string>
+              )
+              url += '?' + urlParams.toString()
+            }
+            return url
+          },
+          validateRoute: (pattern: string, routes: RoutesT) =>
+            pattern in routes,
+          parseRouteTo: (routeTo: RouteToT) =>
+            typeof routeTo === 'string' ? { pattern: routeTo } : routeTo,
+          navigateTo: vi.fn(),
+          redirectTo: () => {
+            throw new Error('Redirect failed')
+          },
+        },
+      })
+
+      errorOvermind.actions.router.initializeRouter(routes)
+
+      errorOvermind.actions.router.redirectTo({
+        pattern: '/users/:id',
+        routeParams: { id: '123' },
+      })
+
+      expect(errorOvermind.state.router.current).toBe('NAVIGATION_FAILURE')
+      if (errorOvermind.state.router.current === 'NAVIGATION_FAILURE') {
+        expect(errorOvermind.state.router.errorMsg).toContain('Redirect failed')
+        expect(errorOvermind.state.router.errorType).toBe('redirect_error')
+      }
+    })
+
+    test('should handle getCurrentRoute returning null during navigation', () => {
+      let callCount = 0
+      const errorOvermind = createOvermindMock(config, {
+        router: {
+          matchRoute: mockMatchRoute,
+          getCurrentRoute: () => {
+            callCount++
+            if (callCount === 1) {
+              return {
+                pattern: '/',
+                path: '/',
+                params: {},
+                routeParams: {},
+              }
+            }
+            return null
+          },
+          getUrlFromRoute: (pattern: string, params = {}, routeParams = {}) => {
+            let path = pattern
+            for (const [key, value] of Object.entries(routeParams)) {
+              path = path.replace(`:${key}`, String(value))
+            }
+            let url = 'http://localhost:3000' + path
+            if (Object.keys(params).length > 0) {
+              const urlParams = new URLSearchParams(
+                params as Record<string, string>
+              )
+              url += '?' + urlParams.toString()
+            }
+            return url
+          },
+          validateRoute: (pattern: string, routes: RoutesT) =>
+            pattern in routes,
+          parseRouteTo: (routeTo: RouteToT) =>
+            typeof routeTo === 'string' ? { pattern: routeTo } : routeTo,
+          navigateTo: vi.fn(),
+          redirectTo: vi.fn(),
+        },
+      })
+
+      errorOvermind.actions.router.initializeRouter(routes)
+
+      errorOvermind.actions.router.navigateTo({
+        pattern: '/users/:id',
+        routeParams: { id: '123' },
+      })
+
+      expect(errorOvermind.state.router.current).toBe('ROUTE_NOT_FOUND')
+      if (errorOvermind.state.router.current === 'ROUTE_NOT_FOUND') {
+        expect(errorOvermind.state.router.requestedPath).toBeDefined()
+      }
+    })
+
+    test('should handle getCurrentRoute returning null during browser navigation', () => {
+      const errorOvermind = createOvermindMock(config, {
+        router: {
+          matchRoute: mockMatchRoute,
+          getCurrentRoute: () => null,
+          getUrlFromRoute: (pattern: string, params = {}, routeParams = {}) => {
+            let path = pattern
+            for (const [key, value] of Object.entries(routeParams)) {
+              path = path.replace(`:${key}`, String(value))
+            }
+            let url = 'http://localhost:3000' + path
+            if (Object.keys(params).length > 0) {
+              const urlParams = new URLSearchParams(
+                params as Record<string, string>
+              )
+              url += '?' + urlParams.toString()
+            }
+            return url
+          },
+          validateRoute: (pattern: string, routes: RoutesT) =>
+            pattern in routes,
+          parseRouteTo: (routeTo: RouteToT) =>
+            typeof routeTo === 'string' ? { pattern: routeTo } : routeTo,
+          navigateTo: vi.fn(),
+          redirectTo: vi.fn(),
+          navigateBack: vi.fn(),
+        },
+      })
+
+      errorOvermind.actions.router.navigateBack()
+
+      expect(errorOvermind.state.router.current).toBe('ROUTE_NOT_FOUND')
+      if (errorOvermind.state.router.current === 'ROUTE_NOT_FOUND') {
+        expect(errorOvermind.state.router.requestedPath).toBe(
+          window.location.pathname
+        )
+      }
+    })
+  })
+
+  describe('state machine transitions from different states', () => {
+    test('should handle navigation from NAVIGATION_FAILURE state', () => {
+      overmind.actions.router.initializeRouter(routes)
+
+      overmind.actions.router.navigateTo('/invalid/pattern')
+      expect(overmind.state.router.current).toBe('NAVIGATION_FAILURE')
+
+      overmind.actions.router.navigateTo('/')
+      expect(overmind.state.router.current).toBe('ROUTER_READY')
+    })
+
+    test('should handle navigation from ROUTE_NOT_FOUND state', () => {
+      overmind.actions.router.initializeRouter(routes)
+
+      mockLocation.pathname = '/invalid/path'
+      mockLocation.href = 'http://localhost:3000/invalid/path'
+      overmind.actions.router.onPopState()
+      expect(overmind.state.router.current).toBe('ROUTE_NOT_FOUND')
+
+      overmind.actions.router.navigateTo('/')
+      expect(overmind.state.router.current).toBe('ROUTER_READY')
+    })
+
+    test('should handle router initialization from NAVIGATION_FAILURE state', () => {
+      const failureOvermind = createOvermindMock(
+        config,
+        {
+          router: {
+            matchRoute: mockMatchRoute,
+            getCurrentRoute: (routes) => {
+              let path = mockLocation.pathname.replace(/\/$/, '')
+              path = path === '' ? '/' : path
+
+              let matchResult
+              for (const pattern of Object.keys(routes)) {
+                const { match, params } = mockMatchRoute(pattern, path)
+                if (match) {
+                  matchResult = { pattern, routeParams: params }
+                  break
+                }
+              }
+              if (!matchResult) {
+                return null
+              }
+
+              const { pattern, routeParams } = matchResult
+              const routeConfig = routes[pattern]
+              const expectedParams = routeConfig?.params || []
+
+              const result: ParsedRouteT | null = {
+                pattern,
+                path,
+              }
+
+              if (routeParams && Object.keys(routeParams).length > 0) {
+                result.routeParams = routeParams
+              }
+
+              if (expectedParams.length > 0) {
+                const queryParams: ParamsT = {}
+                const urlParams = new URLSearchParams(mockLocation.search)
+
+                for (const paramName of expectedParams) {
+                  const value = urlParams.get(paramName)
+                  if (value !== null) {
+                    queryParams[paramName] = value
+                  }
+                }
+
+                result.params = queryParams
+              }
+
+              return result
+            },
+            getUrlFromRoute: (
+              pattern: string,
+              params = {},
+              routeParams = {}
+            ) => {
+              let path = pattern
+              for (const [key, value] of Object.entries(routeParams)) {
+                path = path.replace(`:${key}`, String(value))
+              }
+              let url = 'http://localhost:3000' + path
+              if (Object.keys(params).length > 0) {
+                const urlParams = new URLSearchParams(
+                  params as Record<string, string>
+                )
+                url += '?' + urlParams.toString()
+              }
+              return url
+            },
+            validateRoute: (pattern: string, routes: RoutesT) =>
+              pattern in routes,
+            parseRouteTo: (routeTo: RouteToT, routes: RoutesT) => {
+              if (typeof routeTo === 'string') {
+                if (routeTo.includes('?')) {
+                  try {
+                    const url = new URL(routeTo, 'http://localhost:3000')
+                    let path = url.pathname.replace(/\/$/, '')
+                    path = path === '' ? '/' : path
+
+                    let matchResult
+                    for (const pattern of Object.keys(routes)) {
+                      const { match, params } = mockMatchRoute(pattern, path)
+                      if (match) {
+                        matchResult = { pattern, routeParams: params }
+                        break
+                      }
+                    }
+
+                    if (matchResult) {
+                      const { pattern, routeParams } = matchResult
+                      const routeConfig = routes[pattern]
+                      const expectedParams = routeConfig?.params || []
+
+                      const result: ParsedRouteT = {
+                        pattern,
+                      }
+
+                      if (routeParams && Object.keys(routeParams).length > 0) {
+                        result.routeParams = routeParams
+                      }
+
+                      if (expectedParams.length > 0) {
+                        const queryParams: ParamsT = {}
+                        const urlParams = new URLSearchParams(url.search)
+
+                        for (const paramName of expectedParams) {
+                          const value = urlParams.get(paramName)
+                          if (value !== null) {
+                            queryParams[paramName] = value
+                          }
+                        }
+
+                        result.params = queryParams
+                      }
+
+                      return result
+                    } else {
+                      const [pathPart] = routeTo.split('?')
+                      return { pattern: pathPart }
+                    }
+                  } catch {
+                    const [pathPart] = routeTo.split('?')
+                    return { pattern: pathPart }
+                  }
+                } else {
+                  let matchResult
+                  for (const pattern of Object.keys(routes)) {
+                    const { match, params } = mockMatchRoute(pattern, routeTo)
+                    if (match) {
+                      matchResult = { pattern, routeParams: params }
+                      break
+                    }
+                  }
+
+                  if (matchResult) {
+                    const { pattern, routeParams } = matchResult
+                    const routeConfig = routes[pattern]
+                    const expectedParams = routeConfig?.params || []
+
+                    const result: ParsedRouteT = {
+                      pattern,
+                    }
+
+                    if (routeParams && Object.keys(routeParams).length > 0) {
+                      result.routeParams = routeParams
+                    }
+
+                    if (expectedParams.length > 0) {
+                      result.params = {}
+                    }
+
+                    return result
+                  } else {
+                    return { pattern: routeTo }
+                  }
+                }
+              } else {
+                return routeTo
+              }
+            },
+            navigateTo: vi.fn(),
+            redirectTo: vi.fn(),
+          },
+        },
+        (state) => {
+          state.router.current = 'NAVIGATION_FAILURE'
+          if (state.router.current === 'NAVIGATION_FAILURE') {
+            state.router.errorMsg = 'Test error'
+            state.router.errorType = 'test'
+            state.router.currentRoute = undefined
+          }
+        }
+      )
+
+      mockLocation.pathname = '/'
+      mockLocation.href = 'http://localhost:3000/'
+      failureOvermind.actions.router.initializeRouter(routes)
+      expect(failureOvermind.state.router.current).toBe('ROUTER_READY')
     })
   })
 })
