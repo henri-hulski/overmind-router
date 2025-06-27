@@ -24,23 +24,54 @@ actions.router.initializeRouter({
 
 ---
 
-### `navigateTo(route: ParsedRouteT)`
+### `navigateTo(route: RouteToT)`
 
 Navigate to a specific route.
 
 ```typescript
+// Simple navigation
+// string format
+actions.router.navigateTo('/clients')
+//object format
+action.router.navigateTo({
+  pattern: '/clients'
+})
+
+// URL with query parameters
+// string format
+actions.router.navigateTo('/login?returnUrl=home')
+// object format
+actions.router.navigateTo({
+  pattern: '/login',
+  params: { returnUrl: 'home' }
+})
+
+// Navigation with route parameters
+// string format
+actions.router.navigateTo('/clients/123')
+// object format
 actions.router.navigateTo({
   pattern: '/clients/:id',
-  routeParams: { id: '123' },
-  params: { tab: 'edit' }
+  routeParams: { id: '123' }
+})
+
+// Navigation with route and query parameters
+// string format
+actions.router.navigateTo('/clients/123?tab=edit')
+// object format
+actions.router.navigateTo({
+  pattern: '/clients/:id',
+  params: { tab: 'edit' },
+  routeParams: { id: '123' }
 })
 ```
 
 **Parameters:**
 
-- `route.pattern` - Route pattern (e.g., `/clients/:id`)
-- `route.routeParams` - Dynamic route parameters (optional)
-- `route.params` - Query parameters (optional)
+- `route` - Either a string (pattern or URL with query params) or an object containing:
+  - `pattern` - Route pattern (e.g., `/clients/:id`)
+  - `params` - Query parameters (optional)
+  - `routeParams` - Dynamic route parameters (optional)
 
 **Events:** `NAVIGATION_STARTED` → `NAVIGATION_RESOLVED` | `NAVIGATION_REJECTED` | `ROUTE_NOT_FOUND_DETECTED`
 
@@ -88,11 +119,18 @@ actions.router.updateParams({
 
 ---
 
-### `redirectTo(payload: { pattern: string; routeParams?: ParamsT; params?: ParamsT })`
+### `redirectTo(route: RouteToT)`
 
 Replace current URL without adding to history.
 
 ```typescript
+// Simple redirect
+actions.router.redirectTo('/login')
+
+// Redirect with query parameters
+actions.router.redirectTo('/login?returnUrl=home')
+
+// Redirect with object format
 actions.router.redirectTo({
   pattern: '/login',
   params: { returnUrl: '/dashboard' }
@@ -101,9 +139,10 @@ actions.router.redirectTo({
 
 **Parameters:**
 
-- `pattern` - Route pattern
-- `routeParams` - Dynamic route parameters (optional)
-- `params` - Query parameters (optional)
+- `route` - Either a string (pattern or URL with query params) or an object containing:
+  - `pattern` - Route pattern
+  - `params` - Query parameters (optional)
+  - `routeParams` - Dynamic route parameters (optional)
 
 ---
 
@@ -188,18 +227,47 @@ Parsed route object.
 type ParsedRouteT = {
   pattern: string
   path?: string
-  routeParams?: ParamsT
   params?: ParamsT
+  routeParams?: ParamsT
 }
 
 // Example
 const route: ParsedRouteT = {
   pattern: '/users/:id',
   path: '/users/123',
-  routeParams: { id: '123' },
-  params: { tab: 'profile' }
+  params: { tab: 'profile' },
+  routeParams: { id: '123' }
 }
 ```
+
+### `RouteToT`
+
+Route navigation payload type.
+
+```typescript
+type RouteToT =
+  | string // Simple pattern or full URL with query params
+  | {
+      pattern: string
+      params?: ParamsT
+      routeParams?: ParamsT
+    }
+
+// Examples
+const simpleRoute: RouteToT = '/home'
+const urlWithQuery: RouteToT = '/login?returnUrl=home'
+const complexRoute: RouteToT = {
+  pattern: '/users/:id',
+  params: { tab: 'profile' },
+  routeParams: { id: '123' }
+}
+```
+
+**String Format Options:**
+
+- **Simple pattern**: `'/home'`, `'/clients'`
+- **URL with query params**: `'/login?returnUrl=home'`, `'/users/123?tab=profile'`
+- **For dynamic routes**: Use object format for route parameters like `/users/:id`
 
 ### `ParamsT`
 
@@ -259,12 +327,12 @@ const currentRoute = effects.router.getCurrentRoute(routes)
 // Returns ParsedRouteT | null
 ```
 
-### `router.navigateTo(pattern: string, routeParams?: ParamsT, params?: ParamsT)`
+### `router.navigateTo(pattern: string, params?: ParamsT, routeParams?: ParamsT)`
 
 Update browser URL and history.
 
 ```typescript
-effects.router.navigateTo('/users/:id', { id: '123' }, { tab: 'profile' })
+effects.router.navigateTo('/users/:id', { tab: 'profile' }, { id: '123' })
 ```
 
 ### `router.validateRoute(pattern: string, routes: RoutesT)`
@@ -276,15 +344,36 @@ const isValid = effects.router.validateRoute('/users/:id', routes)
 // Returns boolean
 ```
 
-### `router.getUrlFromRoute(pattern: string, routeParams?: ParamsT, params?: ParamsT)`
+### `router.parseRouteTo(route: RouteToT, routes: RoutesT)`
+
+Parse a RouteToT input (string or object) into its constituent parts.
+
+```typescript
+// Parse URL string
+const parsed = effects.router.parseRouteTo('/users/123?tab=profile', routes)
+// Returns { pattern: '/users/:id', params: { tab: 'profile' }, routeParams: { id: '123' } }
+
+// Parse object input
+const parsed = effects.router.parseRouteTo(
+  {
+    pattern: '/users/:id',
+    params: { tab: 'profile' },
+    routeParams: { id: '123' }
+  },
+  routes
+)
+// Returns the same object
+```
+
+### `router.getUrlFromRoute(pattern: string, params?: ParamsT, routeParams?: ParamsT)`
 
 Generate URL from route components.
 
 ```typescript
 const url = effects.router.getUrlFromRoute(
   '/users/:id',
-  { id: '123' },
-  { tab: 'profile' }
+  { tab: 'profile' },
+  { id: '123' }
 )
 // Returns '/users/123?tab=profile'
 ```

@@ -70,9 +70,9 @@ if (router.current === 'ROUTER_READY' && router.currentRoute) {
   const { pattern, routeParams, params, path } = router.currentRoute
 
   // pattern: '/clients/:id'
-  // routeParams: { id: '123' }
-  // params: { search: 'john' }
   // path: '/clients/123'
+  // params: { search: 'john' }
+  // routeParams: { id: '123' }
 }
 ```
 
@@ -201,7 +201,10 @@ export const onInitializeOvermind = async ({ state, actions }: Context) => {
   const isAuthenticated = await actions.auth.checkSession()
 
   if (!isAuthenticated) {
-    actions.router.redirectTo({ pattern: '/login' })
+    actions.router.redirectTo({
+      pattern: '/login',
+      params: { returnUrl: window.location.pathname }
+    })
   } else {
     actions.router.initializeRouter(routes)
   }

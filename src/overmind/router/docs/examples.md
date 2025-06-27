@@ -100,7 +100,7 @@ export default function App() {
             <h1>Page Not Found</h1>
             <p>The path "{router.requestedPath}" was not found.</p>
             <button
-              onClick={() => actions.router.navigateTo({ pattern: '/' })}
+              onClick={() => actions.router.navigateTo('/')}
               className="btn-primary"
             >
               Go Home
@@ -121,7 +121,7 @@ export default function App() {
             <h1>Navigation Error</h1>
             <p>{router.errorMsg}</p>
             <button
-              onClick={() => actions.router.navigateTo({ pattern: '/' })}
+              onClick={() => actions.router.navigateTo('/')}
               className="btn-primary"
             >
               Go Home
@@ -187,7 +187,7 @@ export const Navigation: React.FC = () => {
     <nav className="navbar">
       <div className="nav-brand">
         <h1
-          onClick={() => actions.router.navigateTo({ pattern: '/' })}
+          onClick={() => actions.router.navigateTo('/')}
           style={{ cursor: 'pointer' }}
         >
           My App
@@ -196,21 +196,21 @@ export const Navigation: React.FC = () => {
 
       <div className="nav-links">
         <button
-          onClick={() => actions.router.navigateTo({ pattern: '/' })}
+          onClick={() => actions.router.navigateTo('/')}
           className={`nav-link ${currentPattern === '/' ? 'active' : ''}`}
         >
           Home
         </button>
 
         <button
-          onClick={() => actions.router.navigateTo({ pattern: '/clients' })}
+          onClick={() => actions.router.navigateTo('/clients')}
           className={`nav-link ${currentPattern === '/clients' ? 'active' : ''}`}
         >
           Clients
         </button>
 
         <button
-          onClick={() => actions.router.navigateTo({ pattern: '/clients/new' })}
+          onClick={() => actions.router.navigateTo('/clients/new')}
           className={`nav-link ${currentPattern === '/clients/new' ? 'active' : ''}`}
         >
           Add Client
@@ -261,13 +261,13 @@ export const ClientDetail: React.FC<Props> = ({ clientId }) => {
   }
 
   const handleBack = () => {
-    actions.router.navigateTo({ pattern: '/clients' })
+    actions.router.navigateTo('/clients')
   }
 
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this client?')) {
       await actions.clients.deleteClient(clientId)
-      actions.router.navigateTo({ pattern: '/clients' })
+      actions.router.navigateTo('/clients')
     }
   }
 
@@ -405,7 +405,7 @@ export const ClientList: React.FC = () => {
   }
 
   const handleAddClient = () => {
-    actions.router.navigateTo({ pattern: '/clients/new' })
+    actions.router.navigateTo('/clients/new')
   }
 
   return (

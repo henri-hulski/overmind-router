@@ -5,7 +5,7 @@ This guide shows how to set up the Overmind router in your React application.
 ## 1. Installation
 
 The router is included in this project. No additional packages needed.
-Copy the `router` module from the `overmind` directory into your project.
+You should copy the `router` module from the `overmind` directory to your project.
 
 ## 2. Define Routes
 
