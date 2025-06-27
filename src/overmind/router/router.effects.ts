@@ -13,39 +13,14 @@ export type ParsedRouteT = {
   routeParams?: ParamsT
 }
 
-export function matchRoute(
-  pattern: string,
-  path: string
-): { match: boolean; params: ParamsT } {
-  const patternParts = pattern.split('/')
-  const pathParts = path.split('/')
-
-  if (patternParts.length !== pathParts.length) {
-    return { match: false, params: {} }
-  }
-
-  const params: ParamsT = {}
-
-  for (let i = 0; i < patternParts.length; i++) {
-    const patternPart = patternParts[i]
-    const pathPart = pathParts[i]
-
-    if (patternPart.startsWith(':')) {
-      params[patternPart.slice(1)] = pathPart
-    } else if (patternPart !== pathPart) {
-      return { match: false, params: {} }
-    }
-  }
-
-  return { match: true, params }
-}
+export type RouteToT = string | ParsedRouteT
 
 function findMatchingRoute(
   path: string,
   routes: RoutesT
 ): { pattern: string; routeParams: ParamsT } | null {
   for (const pattern of Object.keys(routes)) {
-    const { match, params } = matchRoute(pattern, path)
+    const { match, params } = router.matchRoute(pattern, path)
     if (match) {
       return { pattern, routeParams: params }
     }
@@ -94,10 +69,10 @@ export const router = {
     }
   },
 
-  getCurrentRoute(routes: RoutesT): ParsedRouteT | null {
+  getRouteFromUrl(url: string, routes: RoutesT): ParsedRouteT | null {
     try {
-      const url = new URL(location.href)
-      let path = url.pathname.replace(/\/$/, '')
+      const urlObj = new URL(url, this.getBaseUrl())
+      let path = urlObj.pathname.replace(/\/$/, '')
       path = path === '' ? '/' : path
 
       const matchResult = findMatchingRoute(path, routes)
@@ -109,32 +84,47 @@ export const router = {
       const routeConfig = routes[pattern]
       const expectedParams = routeConfig?.params || []
 
-      const queryParams: ParamsT = {}
-      const urlParams = new URLSearchParams(url.search)
-
-      for (const paramName of expectedParams) {
-        const value = urlParams.get(paramName)
-        if (value !== null) {
-          queryParams[paramName] = value
-        }
-      }
-
-      return {
+      // Build result object conditionally
+      const result: ParsedRouteT = {
         pattern,
         path,
-        params: queryParams,
-        routeParams,
       }
+
+      // Include routeParams if there are route parameters in the URL path
+      if (routeParams && Object.keys(routeParams).length > 0) {
+        result.routeParams = routeParams
+      }
+
+      // Include params if the route configuration defines query params
+      if (expectedParams.length > 0) {
+        const queryParams: ParamsT = {}
+        const urlParams = new URLSearchParams(urlObj.search)
+
+        for (const paramName of expectedParams) {
+          const value = urlParams.get(paramName)
+          if (value !== null) {
+            queryParams[paramName] = value
+          }
+        }
+
+        result.params = queryParams
+      }
+
+      return result
     } catch (error) {
       console.error('Error parsing route from URL:', error)
       return null
     }
   },
 
+  getCurrentRoute(routes: RoutesT): ParsedRouteT | null {
+    return this.getRouteFromUrl(location.href, routes)
+  },
+
   getUrlFromRoute(
     pattern: string,
-    routeParams: ParamsT = {},
-    params: ParamsT = {}
+    params: ParamsT = {},
+    routeParams: ParamsT = {}
   ): string {
     const path = buildPath(pattern, routeParams)
     let url = this.getBaseUrl() + path
@@ -148,19 +138,19 @@ export const router = {
 
   setUrlFromRoute(
     pattern: string,
-    routeParams: ParamsT = {},
-    params: ParamsT = {}
+    params: ParamsT = {},
+    routeParams: ParamsT = {}
   ): void {
-    const url = this.getUrlFromRoute(pattern, routeParams, params)
+    const url = this.getUrlFromRoute(pattern, params, routeParams)
     history.replaceState({}, '', url)
   },
 
   navigateTo(
     pattern: string,
-    routeParams: ParamsT = {},
-    params: ParamsT = {}
+    params: ParamsT = {},
+    routeParams: ParamsT = {}
   ): void {
-    const url = this.getUrlFromRoute(pattern, routeParams, params)
+    const url = this.getUrlFromRoute(pattern, params, routeParams)
     history.pushState({}, '', url)
   },
 
@@ -182,10 +172,10 @@ export const router = {
 
   redirectTo(
     pattern: string,
-    routeParams: ParamsT = {},
-    params: ParamsT = {}
+    params: ParamsT = {},
+    routeParams: ParamsT = {}
   ): void {
-    const url = this.getUrlFromRoute(pattern, routeParams, params)
+    const url = this.getUrlFromRoute(pattern, params, routeParams)
     location.href = url
   },
 
@@ -199,10 +189,10 @@ export const router = {
 
   replaceUrlWithParams(
     pattern: string,
-    routeParams: ParamsT = {},
-    params: ParamsT = {}
+    params: ParamsT = {},
+    routeParams: ParamsT = {}
   ): void {
-    this.setUrlFromRoute(pattern, routeParams, params)
+    this.setUrlFromRoute(pattern, params, routeParams)
   },
 
   isValidUrl(url: string): boolean {
@@ -225,6 +215,62 @@ export const router = {
 
   validateRoute(pattern: string, routes: RoutesT): boolean {
     return pattern in routes
+  },
+
+  parseRouteTo(routeTo: RouteToT, routes: RoutesT): ParsedRouteT {
+    // Handle string input by parsing URL
+    if (typeof routeTo === 'string') {
+      const parsedRoute = this.getRouteFromUrl(routeTo, routes)
+      if (parsedRoute) {
+        const result: ParsedRouteT = {
+          pattern: parsedRoute.pattern,
+        }
+
+        if (parsedRoute.params !== undefined) {
+          result.params = parsedRoute.params
+        }
+
+        if (parsedRoute.routeParams !== undefined) {
+          result.routeParams = parsedRoute.routeParams
+        }
+
+        return result
+      } else {
+        // If parsing fails, treat as simple pattern
+        const [pathPart] = routeTo.split('?')
+        return { pattern: pathPart }
+      }
+    }
+
+    // Handle object input - return as-is since it's already in the correct format
+    return routeTo
+  },
+
+  matchRoute(
+    pattern: string,
+    path: string
+  ): { match: boolean; params: ParamsT } {
+    const patternParts = pattern.split('/')
+    const pathParts = path.split('/')
+
+    if (patternParts.length !== pathParts.length) {
+      return { match: false, params: {} }
+    }
+
+    const params: ParamsT = {}
+
+    for (let i = 0; i < patternParts.length; i++) {
+      const patternPart = patternParts[i]
+      const pathPart = pathParts[i]
+
+      if (patternPart.startsWith(':')) {
+        params[patternPart.slice(1)] = pathPart
+      } else if (patternPart !== pathPart) {
+        return { match: false, params: {} }
+      }
+    }
+
+    return { match: true, params }
   },
 
   getRoutePatterns(routes: RoutesT): string[] {

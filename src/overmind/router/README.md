@@ -33,10 +33,7 @@ const routes = {
 actions.router.initializeRouter(routes)
 
 // 3. Navigate in components
-actions.router.navigateTo({
-  pattern: '/users/:id',
-  routeParams: { id: '123' }
-})
+actions.router.navigateTo('/users/:id', { tab: 'edit' }, { id: '123' })
 
 // 4. Access current route
 const { router } = useAppState()

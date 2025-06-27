@@ -1,5 +1,5 @@
 import type { Context } from '../index'
-import type { ParamsT, ParsedRouteT, RoutesT } from './router.effects'
+import type { ParamsT, RoutesT, RouteToT } from './router.effects'
 
 export const initializeRouter = (
   { state, effects }: Context,
@@ -16,11 +16,20 @@ export const initializeRouter = (
   }
 }
 
-export const navigateTo = (
-  { state, effects }: Context,
-  route: ParsedRouteT
-) => {
-  const { pattern, routeParams = {}, params = {} } = route
+export const navigateTo = ({ state, effects }: Context, route: RouteToT) => {
+  // Parse route URL string or object input
+  const { pattern, params, routeParams } = effects.router.parseRouteTo(
+    route,
+    state.router.routes
+  )
+
+  state.router.send('NAVIGATION_STARTED', {
+    route: {
+      pattern,
+      params: params || {},
+      routeParams: routeParams || {},
+    },
+  })
 
   if (!effects.router.validateRoute(pattern, state.router.routes)) {
     state.router.send('NAVIGATION_REJECTED', {
@@ -31,10 +40,8 @@ export const navigateTo = (
     return
   }
 
-  state.router.send('NAVIGATION_STARTED', { route })
-
   try {
-    effects.router.navigateTo(pattern, routeParams, params)
+    effects.router.navigateTo(pattern, params || {}, routeParams || {})
 
     const newRoute = effects.router.getCurrentRoute(state.router.routes)
     if (newRoute) {
@@ -43,8 +50,8 @@ export const navigateTo = (
       state.router.send('ROUTE_NOT_FOUND_DETECTED', {
         requestedPath: effects.router.getUrlFromRoute(
           pattern,
-          routeParams,
-          params
+          params,
+          routeParams
         ),
       })
     }
@@ -63,8 +70,8 @@ export const navigateBack = ({ state, effects }: Context) => {
   state.router.send('NAVIGATION_STARTED', {
     route: {
       pattern: 'browser_back',
-      routeParams: {},
       params: {},
+      routeParams: {},
     },
   })
 
@@ -129,23 +136,46 @@ export const updateParams = (
   }
 
   const currentRoute = readyState.currentRoute
-  const updatedParams = { ...currentRoute.params, ...payload.params }
+  const routeConfig = state.router.routes[currentRoute.pattern]
+  const expectedParams = routeConfig?.params || []
+
+  // Merge params, then filter to only include expected params
+  const mergedParams = { ...currentRoute.params, ...payload.params }
+  const filteredParams: ParamsT = {}
+
+  for (const paramName of expectedParams) {
+    if (paramName in mergedParams) {
+      filteredParams[paramName] = mergedParams[paramName]
+    }
+  }
 
   effects.router.replaceUrlWithParams(
     currentRoute.pattern,
-    currentRoute.routeParams,
-    updatedParams
+    filteredParams,
+    currentRoute.routeParams
   )
 
-  const updatedRoute = { ...currentRoute, params: updatedParams }
-  state.router.send('NAVIGATION_RESOLVED', { route: updatedRoute })
+  // Get the actual current route after URL update
+  const updatedRoute = effects.router.getCurrentRoute(state.router.routes)
+  if (updatedRoute) {
+    state.router.send('NAVIGATION_RESOLVED', { route: updatedRoute })
+  }
 }
 
-export const redirectTo = (
-  { state, effects }: Context,
-  payload: { pattern: string; routeParams?: ParamsT; params?: ParamsT }
-) => {
-  const { pattern, routeParams = {}, params = {} } = payload
+export const redirectTo = ({ state, effects }: Context, route: RouteToT) => {
+  // Parse route URL string or object input
+  const { pattern, params, routeParams } = effects.router.parseRouteTo(
+    route,
+    state.router.routes
+  )
+
+  state.router.send('NAVIGATION_STARTED', {
+    route: {
+      pattern,
+      params: params || {},
+      routeParams: routeParams || {},
+    },
+  })
 
   if (!effects.router.validateRoute(pattern, state.router.routes)) {
     state.router.send('NAVIGATION_REJECTED', {
@@ -156,7 +186,22 @@ export const redirectTo = (
     return
   }
 
-  effects.router.redirectTo(pattern, routeParams, params)
+  try {
+    effects.router.redirectTo(pattern, params || {}, routeParams || {})
+
+    // Note: This will likely not execute since redirectTo causes a full page redirect
+    // but included for state machine consistency
+    const newRoute = effects.router.getCurrentRoute(state.router.routes)
+    if (newRoute) {
+      state.router.send('NAVIGATION_RESOLVED', { route: newRoute })
+    }
+  } catch (error) {
+    state.router.send('NAVIGATION_REJECTED', {
+      errorMsg: error instanceof Error ? error.message : 'Redirect failed',
+      errorType: 'redirect_error',
+      currentRoute: state.router.matches('ROUTER_READY')?.currentRoute,
+    })
+  }
 }
 
 export const onPopState = ({ state, effects }: Context) => {
