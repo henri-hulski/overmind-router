@@ -12,7 +12,7 @@
     "build": "vite build",
     "coverage": "vitest run --coverage",
     "lint": "eslint .",
-    "format": "prettier . --write --list-different && npm run lint -- --fix",
+    "format": "prettier . --write --list-different --log-level error && npm run lint -- --fix",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

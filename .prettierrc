@@ -19,7 +19,10 @@
     {
       "files": "*.md",
       "options": {
-        "trailingComma": "none"
+        "trailingComma": "none",
+        "importOrder": [],
+        "importOrderTypeScriptVersion": "none",
+        "plugins": []
       }
     }
   ]
