@@ -8,6 +8,12 @@
     "state machine",
     "react"
   ],
+  "author": "Henri Hulski <henri@sancode.it>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henri-hulski/overmind-router.git"
+  },
   "scripts": {
     "build": "vite build",
     "coverage": "vitest run --coverage",
