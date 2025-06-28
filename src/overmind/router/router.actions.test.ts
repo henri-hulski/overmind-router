@@ -71,7 +71,7 @@ describe('Router Actions', () => {
       router: {
         matchRoute: mockMatchRoute,
 
-        getCurrentRoute: (routes) => {
+        getCurrentRoute: (routes: RoutesT) => {
           let path = mockLocation.pathname.replace(/\/$/, '')
           path = path === '' ? '/' : path
 
@@ -136,7 +136,7 @@ describe('Router Actions', () => {
           return pattern in routes
         },
 
-        parseRouteTo: (routeTo: RouteToT, routes: RoutesT) => {
+        parseRoute: (routeTo: RouteToT, routes: RoutesT) => {
           if (typeof routeTo === 'string') {
             if (routeTo.includes('?')) {
               try {
@@ -160,6 +160,7 @@ describe('Router Actions', () => {
 
                   const result: ParsedRouteT = {
                     pattern,
+                    path: routeTo,
                   }
 
                   if (routeParams && Object.keys(routeParams).length > 0) {
@@ -183,11 +184,11 @@ describe('Router Actions', () => {
                   return result
                 } else {
                   const [pathPart] = routeTo.split('?')
-                  return { pattern: pathPart }
+                  return { pattern: pathPart, path: routeTo }
                 }
               } catch {
                 const [pathPart] = routeTo.split('?')
-                return { pattern: pathPart }
+                return { pattern: pathPart, path: routeTo }
               }
             } else {
               let matchResult
@@ -206,6 +207,7 @@ describe('Router Actions', () => {
 
                 const result: ParsedRouteT = {
                   pattern,
+                  path: routeTo,
                 }
 
                 if (routeParams && Object.keys(routeParams).length > 0) {
@@ -218,11 +220,11 @@ describe('Router Actions', () => {
 
                 return result
               } else {
-                return { pattern: routeTo }
+                return { pattern: routeTo, path: routeTo }
               }
             }
           } else {
-            return routeTo
+            return { ...routeTo, path: routeTo.pattern }
           }
         },
 
@@ -711,8 +713,10 @@ describe('Router Actions', () => {
             },
             validateRoute: (pattern: string, routes: RoutesT) =>
               pattern in routes,
-            parseRouteTo: (routeTo: RouteToT) =>
-              typeof routeTo === 'string' ? { pattern: routeTo } : routeTo,
+            parseRoute: (routeTo: RouteToT) =>
+              typeof routeTo === 'string'
+                ? { pattern: routeTo, path: routeTo }
+                : { ...routeTo, path: '/mock-path' },
             navigateTo: vi.fn(),
             redirectTo: vi.fn(),
           },
@@ -871,8 +875,10 @@ describe('Router Actions', () => {
           },
           validateRoute: (pattern: string, routes: RoutesT) =>
             pattern in routes,
-          parseRouteTo: (routeTo: RouteToT) =>
-            typeof routeTo === 'string' ? { pattern: routeTo } : routeTo,
+          parseRoute: (routeTo: RouteToT) =>
+            typeof routeTo === 'string'
+              ? { pattern: routeTo, path: routeTo }
+              : { ...routeTo, path: '/mock-path' },
           navigateTo: () => {
             throw new Error('Navigation failed')
           },
@@ -922,8 +928,10 @@ describe('Router Actions', () => {
           },
           validateRoute: (pattern: string, routes: RoutesT) =>
             pattern in routes,
-          parseRouteTo: (routeTo: RouteToT) =>
-            typeof routeTo === 'string' ? { pattern: routeTo } : routeTo,
+          parseRoute: (routeTo: RouteToT) =>
+            typeof routeTo === 'string'
+              ? { pattern: routeTo, path: routeTo }
+              : { ...routeTo, path: '/mock-path' },
           navigateTo: vi.fn(),
           redirectTo: () => {
             throw new Error('Redirect failed')
@@ -978,8 +986,10 @@ describe('Router Actions', () => {
           },
           validateRoute: (pattern: string, routes: RoutesT) =>
             pattern in routes,
-          parseRouteTo: (routeTo: RouteToT) =>
-            typeof routeTo === 'string' ? { pattern: routeTo } : routeTo,
+          parseRoute: (routeTo: RouteToT) =>
+            typeof routeTo === 'string'
+              ? { pattern: routeTo, path: routeTo }
+              : { ...routeTo, path: '/mock-path' },
           navigateTo: vi.fn(),
           redirectTo: vi.fn(),
         },
@@ -1019,8 +1029,10 @@ describe('Router Actions', () => {
           },
           validateRoute: (pattern: string, routes: RoutesT) =>
             pattern in routes,
-          parseRouteTo: (routeTo: RouteToT) =>
-            typeof routeTo === 'string' ? { pattern: routeTo } : routeTo,
+          parseRoute: (routeTo: RouteToT) =>
+            typeof routeTo === 'string'
+              ? { pattern: routeTo, path: routeTo }
+              : { ...routeTo, path: '/mock-path' },
           navigateTo: vi.fn(),
           redirectTo: vi.fn(),
           navigateBack: vi.fn(),
@@ -1132,7 +1144,7 @@ describe('Router Actions', () => {
             },
             validateRoute: (pattern: string, routes: RoutesT) =>
               pattern in routes,
-            parseRouteTo: (routeTo: RouteToT, routes: RoutesT) => {
+            parseRoute: (routeTo: RouteToT, routes: RoutesT) => {
               if (typeof routeTo === 'string') {
                 if (routeTo.includes('?')) {
                   try {
@@ -1156,6 +1168,7 @@ describe('Router Actions', () => {
 
                       const result: ParsedRouteT = {
                         pattern,
+                        path: routeTo,
                       }
 
                       if (routeParams && Object.keys(routeParams).length > 0) {
@@ -1179,11 +1192,11 @@ describe('Router Actions', () => {
                       return result
                     } else {
                       const [pathPart] = routeTo.split('?')
-                      return { pattern: pathPart }
+                      return { pattern: pathPart, path: routeTo }
                     }
                   } catch {
                     const [pathPart] = routeTo.split('?')
-                    return { pattern: pathPart }
+                    return { pattern: pathPart, path: routeTo }
                   }
                 } else {
                   let matchResult
@@ -1202,6 +1215,7 @@ describe('Router Actions', () => {
 
                     const result: ParsedRouteT = {
                       pattern,
+                      path: routeTo,
                     }
 
                     if (routeParams && Object.keys(routeParams).length > 0) {
@@ -1214,11 +1228,11 @@ describe('Router Actions', () => {
 
                     return result
                   } else {
-                    return { pattern: routeTo }
+                    return { pattern: routeTo, path: routeTo }
                   }
                 }
               } else {
-                return routeTo
+                return { ...routeTo, path: routeTo.pattern }
               }
             },
             navigateTo: vi.fn(),

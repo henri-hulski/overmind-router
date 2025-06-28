@@ -18,7 +18,7 @@ export const initializeRouter = (
 
 export const navigateTo = ({ state, effects }: Context, route: RouteToT) => {
   // Parse route URL string or object input
-  const { pattern, params, routeParams } = effects.router.parseRouteTo(
+  const { pattern, path, params, routeParams } = effects.router.parseRoute(
     route,
     state.router.routes
   )
@@ -26,6 +26,7 @@ export const navigateTo = ({ state, effects }: Context, route: RouteToT) => {
   state.router.send('NAVIGATION_STARTED', {
     route: {
       pattern,
+      path,
       params: params || {},
       routeParams: routeParams || {},
     },
@@ -48,11 +49,7 @@ export const navigateTo = ({ state, effects }: Context, route: RouteToT) => {
       state.router.send('NAVIGATION_RESOLVED', { route: newRoute })
     } else {
       state.router.send('ROUTE_NOT_FOUND_DETECTED', {
-        requestedPath: effects.router.getUrlFromRoute(
-          pattern,
-          params,
-          routeParams
-        ),
+        requestedPath: path,
       })
     }
   } catch (error) {
@@ -70,8 +67,7 @@ export const navigateBack = ({ state, effects }: Context) => {
   state.router.send('NAVIGATION_STARTED', {
     route: {
       pattern: 'browser_back',
-      params: {},
-      routeParams: {},
+      path: '',
     },
   })
 
@@ -102,6 +98,7 @@ export const navigateForward = ({ state, effects }: Context) => {
   state.router.send('NAVIGATION_STARTED', {
     route: {
       pattern: 'browser_forward',
+      path: '',
     },
   })
 
@@ -164,7 +161,7 @@ export const updateParams = (
 
 export const redirectTo = ({ state, effects }: Context, route: RouteToT) => {
   // Parse route URL string or object input
-  const { pattern, params, routeParams } = effects.router.parseRouteTo(
+  const { pattern, path, params, routeParams } = effects.router.parseRoute(
     route,
     state.router.routes
   )
@@ -172,6 +169,7 @@ export const redirectTo = ({ state, effects }: Context, route: RouteToT) => {
   state.router.send('NAVIGATION_STARTED', {
     route: {
       pattern,
+      path,
       params: params || {},
       routeParams: routeParams || {},
     },

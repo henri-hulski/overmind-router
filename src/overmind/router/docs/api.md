@@ -226,7 +226,7 @@ Parsed route object.
 ```typescript
 type ParsedRouteT = {
   pattern: string
-  path?: string
+  path: string
   params?: ParamsT
   routeParams?: ParamsT
 }
@@ -344,17 +344,17 @@ const isValid = effects.router.validateRoute('/users/:id', routes)
 // Returns boolean
 ```
 
-### `router.parseRouteTo(route: RouteToT, routes: RoutesT)`
+### `router.parseRoute(route: RouteToT, routes: RoutesT)`
 
 Parse a RouteToT input (string or object) into its constituent parts.
 
 ```typescript
 // Parse URL string
-const parsed = effects.router.parseRouteTo('/users/123?tab=profile', routes)
+const parsed = effects.router.parseRoute('/users/123?tab=profile', routes)
 // Returns { pattern: '/users/:id', params: { tab: 'profile' }, routeParams: { id: '123' } }
 
 // Parse object input
-const parsed = effects.router.parseRouteTo(
+const parsed = effects.router.parseRoute(
   {
     pattern: '/users/:id',
     params: { tab: 'profile' },

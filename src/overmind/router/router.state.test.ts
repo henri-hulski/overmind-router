@@ -87,6 +87,7 @@ describe('Router State Machine', () => {
     test('should transition to ROUTER_READY on ROUTER_INITIALIZED', () => {
       const mockRoute = {
         pattern: '/',
+        path: '/',
         routeParams: {},
         params: {},
       }
@@ -115,6 +116,7 @@ describe('Router State Machine', () => {
     beforeEach(() => {
       const mockRoute = {
         pattern: '/',
+        path: '/',
         routeParams: {},
         params: {},
       }
@@ -124,6 +126,7 @@ describe('Router State Machine', () => {
     test('should transition to NAVIGATION_IN_PROGRESS on NAVIGATION_STARTED', () => {
       const mockRoute = {
         pattern: '/test',
+        path: '/test',
         routeParams: {},
         params: {},
       }
@@ -155,6 +158,7 @@ describe('Router State Machine', () => {
     beforeEach(() => {
       const mockRoute = {
         pattern: '/',
+        path: '/',
         routeParams: {},
         params: {},
       }
@@ -162,6 +166,7 @@ describe('Router State Machine', () => {
 
       const newRoute = {
         pattern: '/test',
+        path: '/test',
         routeParams: {},
         params: {},
       }
@@ -171,6 +176,7 @@ describe('Router State Machine', () => {
     test('should transition to ROUTER_READY on NAVIGATION_RESOLVED', () => {
       const resolvedRoute = {
         pattern: '/test',
+        path: '/test',
         routeParams: {},
         params: {},
       }
@@ -203,6 +209,7 @@ describe('Router State Machine', () => {
     test('should transition to ROUTER_READY on ROUTER_INITIALIZED', () => {
       const mockRoute = {
         pattern: '/',
+        path: '/',
         routeParams: {},
         params: {},
       }

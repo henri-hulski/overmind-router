@@ -6,14 +6,17 @@ export type RouteConfigT = {
 
 export type RoutesT = Record<string, RouteConfigT>
 
-export type ParsedRouteT = {
+type BaseRouteT = {
   pattern: string
-  path?: string
   params?: ParamsT
   routeParams?: ParamsT
 }
 
-export type RouteToT = string | ParsedRouteT
+export type ParsedRouteT = BaseRouteT & {
+  path: string
+}
+
+export type RouteToT = string | BaseRouteT
 
 function findMatchingRoute(
   path: string,
@@ -28,10 +31,18 @@ function findMatchingRoute(
   return null
 }
 
-function buildPath(pattern: string, routeParams: ParamsT): string {
+function buildPath(
+  pattern: string,
+  params: ParamsT,
+  routeParams: ParamsT
+): string {
   let path = pattern
   for (const [key, value] of Object.entries(routeParams)) {
     path = path.replace(`:${key}`, value)
+  }
+  if (Object.keys(params).length > 0) {
+    const pathParams = new URLSearchParams(params)
+    path += '?' + pathParams.toString()
   }
   return path
 }
@@ -126,14 +137,8 @@ export const router = {
     params: ParamsT = {},
     routeParams: ParamsT = {}
   ): string {
-    const path = buildPath(pattern, routeParams)
-    let url = this.getBaseUrl() + path
-
-    if (Object.keys(params).length > 0) {
-      const urlParams = new URLSearchParams(params)
-      url += '?' + urlParams.toString()
-    }
-    return url
+    const path = buildPath(pattern, params, routeParams)
+    return this.getBaseUrl() + path
   },
 
   setUrlFromRoute(
@@ -217,13 +222,14 @@ export const router = {
     return pattern in routes
   },
 
-  parseRouteTo(routeTo: RouteToT, routes: RoutesT): ParsedRouteT {
+  parseRoute(routeTo: RouteToT, routes: RoutesT): ParsedRouteT {
     // Handle string input by parsing URL
     if (typeof routeTo === 'string') {
       const parsedRoute = this.getRouteFromUrl(routeTo, routes)
       if (parsedRoute) {
         const result: ParsedRouteT = {
           pattern: parsedRoute.pattern,
+          path: routeTo,
         }
 
         if (parsedRoute.params !== undefined) {
@@ -238,12 +244,21 @@ export const router = {
       } else {
         // If parsing fails, treat as simple pattern
         const [pathPart] = routeTo.split('?')
-        return { pattern: pathPart }
+        return {
+          pattern: pathPart,
+          path: routeTo,
+        }
       }
     }
+    const route = routeTo as ParsedRouteT
+    const path = buildPath(
+      route.pattern,
+      route.params || {},
+      route.routeParams || {}
+    )
+    route.path = path
 
-    // Handle object input - return as-is since it's already in the correct format
-    return routeTo
+    return route
   },
 
   matchRoute(

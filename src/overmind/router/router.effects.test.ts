@@ -339,12 +339,9 @@ describe('RouterEffects', () => {
     })
   })
 
-  describe('parseRouteTo', () => {
+  describe('parseRoute', () => {
     test('should parse URL string format', () => {
-      const result = routerEffects.parseRouteTo(
-        '/users/123?tab=profile',
-        routes
-      )
+      const result = routerEffects.parseRoute('/users/123?tab=profile', routes)
 
       expect(result.pattern).toBe('/users/:id')
       expect(result.routeParams).toEqual({ id: '123' })
@@ -352,7 +349,7 @@ describe('RouterEffects', () => {
     })
 
     test('should parse simple URL string without query params', () => {
-      const result = routerEffects.parseRouteTo('/users/456', routes)
+      const result = routerEffects.parseRoute('/users/456', routes)
 
       expect(result.pattern).toBe('/users/:id')
       expect(result.routeParams).toEqual({ id: '456' })
@@ -360,26 +357,26 @@ describe('RouterEffects', () => {
     })
 
     test('should parse route with routeParams but no expected query params', () => {
-      const result = routerEffects.parseRouteTo('/clients/123/cars', routes)
+      const result = routerEffects.parseRoute('/clients/123/cars', routes)
 
       expect(result.pattern).toBe('/clients/:id/cars')
       expect(result.routeParams).toEqual({ id: '123' })
       expect(result.params).toBeUndefined() // Route config has empty params [], so omit
     })
 
-    test('should parse object format unchanged', () => {
+    test('should parse object format with added path', () => {
       const input = {
         pattern: '/users/:id',
         params: { tab: 'profile' },
         routeParams: { id: '123' },
       }
 
-      const result = routerEffects.parseRouteTo(input, routes)
-      expect(result).toEqual(input)
+      const result = routerEffects.parseRoute(input, routes)
+      expect(result).toEqual({ ...input, path: '/users/123?tab=profile' })
     })
 
     test('should handle invalid URL string gracefully', () => {
-      const result = routerEffects.parseRouteTo(
+      const result = routerEffects.parseRoute(
         '/invalid/path?param=value',
         routes
       )
@@ -390,7 +387,7 @@ describe('RouterEffects', () => {
     })
 
     test('should parse complex routes with multiple parameters', () => {
-      const result = routerEffects.parseRouteTo(
+      const result = routerEffects.parseRoute(
         '/clients/123/cars/456?action=edit&modal=true',
         routes
       )
@@ -401,7 +398,7 @@ describe('RouterEffects', () => {
     })
 
     test('should handle URL string without question mark', () => {
-      const result = routerEffects.parseRouteTo('/login', routes)
+      const result = routerEffects.parseRoute('/login', routes)
 
       expect(result.pattern).toBe('/login')
       expect(result.params).toEqual({}) // Route has expected query params, so include empty object
