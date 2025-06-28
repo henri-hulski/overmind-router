@@ -10,7 +10,7 @@ import type {
   ParamsT,
   ParsedRouteT,
   RoutesT,
-  RouteToT,
+  RouteT,
 } from '../../overmind/router/router.effects'
 import { routes } from '../../routes'
 
@@ -194,7 +194,7 @@ describe('Router Integration Tests', () => {
           validateRoute: (pattern: string, routes: RoutesT) => {
             return pattern in routes
           },
-          parseRoute: (routeTo: RouteToT, routes: RoutesT) => {
+          parseRoute: (routeTo: RouteT, routes: RoutesT) => {
             if (typeof routeTo === 'string') {
               if (routeTo.includes('?')) {
                 try {
@@ -473,7 +473,7 @@ describe('Router Integration Tests', () => {
             },
             validateRoute: (pattern: string, routes: RoutesT) =>
               pattern in routes,
-            parseRoute: (routeTo: RouteToT) =>
+            parseRoute: (routeTo: RouteT) =>
               typeof routeTo === 'string'
                 ? { pattern: routeTo, path: routeTo }
                 : { ...routeTo, path: routeTo.pattern },

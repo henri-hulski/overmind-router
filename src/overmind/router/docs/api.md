@@ -24,7 +24,7 @@ actions.router.initializeRouter({
 
 ---
 
-### `navigateTo(route: RouteToT)`
+### `navigateTo(route: RouteT)`
 
 Navigate to a specific route.
 
@@ -119,7 +119,7 @@ actions.router.updateParams({
 
 ---
 
-### `redirectTo(route: RouteToT)`
+### `redirectTo(route: RouteT)`
 
 Replace current URL without adding to history.
 
@@ -240,12 +240,12 @@ const route: ParsedRouteT = {
 }
 ```
 
-### `RouteToT`
+### `RouteT`
 
 Route navigation payload type.
 
 ```typescript
-type RouteToT =
+type RouteT =
   | string // Simple pattern or full URL with query params
   | {
       pattern: string
@@ -254,9 +254,9 @@ type RouteToT =
     }
 
 // Examples
-const simpleRoute: RouteToT = '/home'
-const urlWithQuery: RouteToT = '/login?returnUrl=home'
-const complexRoute: RouteToT = {
+const simpleRoute: RouteT = '/home'
+const urlWithQuery: RouteT = '/login?returnUrl=home'
+const complexRoute: RouteT = {
   pattern: '/users/:id',
   params: { tab: 'profile' },
   routeParams: { id: '123' }
@@ -344,9 +344,9 @@ const isValid = effects.router.validateRoute('/users/:id', routes)
 // Returns boolean
 ```
 
-### `router.parseRoute(route: RouteToT, routes: RoutesT)`
+### `router.parseRoute(route: RouteT, routes: RoutesT)`
 
-Parse a RouteToT input (string or object) into its constituent parts.
+Parse a RouteT input (string or object) into its constituent parts.
 
 ```typescript
 // Parse URL string

@@ -1,5 +1,5 @@
 import type { Context } from '../index'
-import type { ParamsT, RoutesT, RouteToT } from './router.effects'
+import type { ParamsT, RoutesT, RouteT } from './router.effects'
 
 export const initializeRouter = (
   { state, effects }: Context,
@@ -16,7 +16,7 @@ export const initializeRouter = (
   }
 }
 
-export const navigateTo = ({ state, effects }: Context, route: RouteToT) => {
+export const navigateTo = ({ state, effects }: Context, route: RouteT) => {
   // Parse route URL string or object input
   const { pattern, path, params, routeParams } = effects.router.parseRoute(
     route,
@@ -159,7 +159,7 @@ export const updateParams = (
   }
 }
 
-export const redirectTo = ({ state, effects }: Context, route: RouteToT) => {
+export const redirectTo = ({ state, effects }: Context, route: RouteT) => {
   // Parse route URL string or object input
   const { pattern, path, params, routeParams } = effects.router.parseRoute(
     route,

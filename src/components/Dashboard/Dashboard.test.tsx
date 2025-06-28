@@ -5,7 +5,7 @@ import React from 'react'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { config } from '../../overmind'
-import type { RouteToT } from '../../overmind/router/router.effects'
+import type { RouteT } from '../../overmind/router/router.effects'
 import { Dashboard } from './index'
 
 describe('Dashboard Component', () => {
@@ -31,7 +31,7 @@ describe('Dashboard Component', () => {
           redirectTo: () => Promise.resolve(),
           navigateBack: vi.fn(() => Promise.resolve()),
           navigateForward: vi.fn(() => Promise.resolve()),
-          parseRoute: (route: RouteToT) => {
+          parseRoute: (route: RouteT) => {
             if (typeof route === 'string') {
               return {
                 pattern: route,

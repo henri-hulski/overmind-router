@@ -16,7 +16,7 @@ export type ParsedRouteT = BaseRouteT & {
   path: string
 }
 
-export type RouteToT = string | BaseRouteT
+export type RouteT = string | BaseRouteT
 
 function findMatchingRoute(
   path: string,
@@ -222,7 +222,7 @@ export const router = {
     return pattern in routes
   },
 
-  parseRoute(routeTo: RouteToT, routes: RoutesT): ParsedRouteT {
+  parseRoute(routeTo: RouteT, routes: RoutesT): ParsedRouteT {
     // Handle string input by parsing URL
     if (typeof routeTo === 'string') {
       const parsedRoute = this.getRouteFromUrl(routeTo, routes)

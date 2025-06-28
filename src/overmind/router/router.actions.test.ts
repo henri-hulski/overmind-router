@@ -2,7 +2,7 @@ import { createOvermindMock } from 'overmind'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { config } from '../index'
-import type { ParamsT, ParsedRouteT, RoutesT, RouteToT } from './router.effects'
+import type { ParamsT, ParsedRouteT, RoutesT, RouteT } from './router.effects'
 import { routes } from './testRoutes'
 
 // Mock window.location and history
@@ -136,7 +136,7 @@ describe('Router Actions', () => {
           return pattern in routes
         },
 
-        parseRoute: (routeTo: RouteToT, routes: RoutesT) => {
+        parseRoute: (routeTo: RouteT, routes: RoutesT) => {
           if (typeof routeTo === 'string') {
             if (routeTo.includes('?')) {
               try {
@@ -713,7 +713,7 @@ describe('Router Actions', () => {
             },
             validateRoute: (pattern: string, routes: RoutesT) =>
               pattern in routes,
-            parseRoute: (routeTo: RouteToT) =>
+            parseRoute: (routeTo: RouteT) =>
               typeof routeTo === 'string'
                 ? { pattern: routeTo, path: routeTo }
                 : { ...routeTo, path: '/mock-path' },
@@ -875,7 +875,7 @@ describe('Router Actions', () => {
           },
           validateRoute: (pattern: string, routes: RoutesT) =>
             pattern in routes,
-          parseRoute: (routeTo: RouteToT) =>
+          parseRoute: (routeTo: RouteT) =>
             typeof routeTo === 'string'
               ? { pattern: routeTo, path: routeTo }
               : { ...routeTo, path: '/mock-path' },
@@ -928,7 +928,7 @@ describe('Router Actions', () => {
           },
           validateRoute: (pattern: string, routes: RoutesT) =>
             pattern in routes,
-          parseRoute: (routeTo: RouteToT) =>
+          parseRoute: (routeTo: RouteT) =>
             typeof routeTo === 'string'
               ? { pattern: routeTo, path: routeTo }
               : { ...routeTo, path: '/mock-path' },
@@ -986,7 +986,7 @@ describe('Router Actions', () => {
           },
           validateRoute: (pattern: string, routes: RoutesT) =>
             pattern in routes,
-          parseRoute: (routeTo: RouteToT) =>
+          parseRoute: (routeTo: RouteT) =>
             typeof routeTo === 'string'
               ? { pattern: routeTo, path: routeTo }
               : { ...routeTo, path: '/mock-path' },
@@ -1029,7 +1029,7 @@ describe('Router Actions', () => {
           },
           validateRoute: (pattern: string, routes: RoutesT) =>
             pattern in routes,
-          parseRoute: (routeTo: RouteToT) =>
+          parseRoute: (routeTo: RouteT) =>
             typeof routeTo === 'string'
               ? { pattern: routeTo, path: routeTo }
               : { ...routeTo, path: '/mock-path' },
@@ -1144,7 +1144,7 @@ describe('Router Actions', () => {
             },
             validateRoute: (pattern: string, routes: RoutesT) =>
               pattern in routes,
-            parseRoute: (routeTo: RouteToT, routes: RoutesT) => {
+            parseRoute: (routeTo: RouteT, routes: RoutesT) => {
               if (typeof routeTo === 'string') {
                 if (routeTo.includes('?')) {
                   try {

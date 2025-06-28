@@ -3,4 +3,4 @@ import { router as effects } from './router.effects'
 import { state } from './router.state'
 
 export { state, actions, effects }
-export type { RouteToT } from './router.effects'
+export type { RouteT } from './router.effects'
