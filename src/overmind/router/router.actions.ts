@@ -27,8 +27,8 @@ export const navigateTo = ({ state, effects }: Context, route: RouteT) => {
     route: {
       pattern,
       path,
-      params: params || {},
-      routeParams: routeParams || {},
+      params,
+      routeParams,
     },
   })
 
@@ -170,8 +170,8 @@ export const redirectTo = ({ state, effects }: Context, route: RouteT) => {
     route: {
       pattern,
       path,
-      params: params || {},
-      routeParams: routeParams || {},
+      params,
+      routeParams,
     },
   })
 
