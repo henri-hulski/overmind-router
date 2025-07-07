@@ -62,6 +62,7 @@ type Events =
       type: 'ROUTE_NOT_FOUND_DETECTED'
       data: {
         requestedPath: string
+        routes?: RoutesT
       }
     }
   | {
@@ -80,10 +81,15 @@ const routerMachine = statemachine<States, Events, BaseState>({
         currentRoute: route,
       }
     },
-    ROUTE_NOT_FOUND_DETECTED: ({ requestedPath }) => ({
-      current: 'ROUTE_NOT_FOUND',
-      requestedPath,
-    }),
+    ROUTE_NOT_FOUND_DETECTED: ({ requestedPath, routes }, state) => {
+      if (routes) {
+        state.routes = routes
+      }
+      return {
+        current: 'ROUTE_NOT_FOUND',
+        requestedPath,
+      }
+    },
   },
 
   ROUTER_READY: {

@@ -12,6 +12,7 @@ export const initializeRouter = (
   } else {
     state.router.send('ROUTE_NOT_FOUND_DETECTED', {
       requestedPath: window.location.pathname,
+      routes,
     })
   }
 }
