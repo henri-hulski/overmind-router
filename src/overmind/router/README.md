@@ -8,6 +8,8 @@ A lightweight, state machine-driven router for Overmind applications with TypeSc
 - 🔄 **Bidirectional Routing** - URL changes update components, component actions update URL
 - 📝 **TypeScript Support** - Fully typed route parameters and state
 - 🎯 **Route Parameters** - Dynamic route segments and query parameters
+- 🔐 **Route Guards** - Built-in authentication and authorization support
+- 🛡️ **Route Access Control** - `requiresAuth` and custom `guard` function
 - ⚡ **Zero Dependencies** - Built specifically for Overmind
 - 🧪 **Well Tested** - Comprehensive test suite included
 - 🔍 **Devtools Integration** - Full visibility into router state machine transitions via Overmind devtools
@@ -22,11 +24,23 @@ A lightweight, state machine-driven router for Overmind applications with TypeSc
 ## Basic Example
 
 ```tsx
-// 1. Define routes
+// 1. Define routes with authentication
 const routes = {
-  '/': { name: 'home' },
-  '/users/:id': { name: 'userDetail' },
-  '/users/:id/edit': { name: 'userEdit' }
+  '/': { params: [] },
+  '/login': { params: [] },
+  '/users': {
+    params: ['search'],
+    requiresAuth: true
+  },
+  '/users/:id': {
+    params: ['tab'],
+    requiresAuth: true
+  },
+  '/admin': {
+    params: [],
+    requiresAuth: true,
+    guard: (user) => user?.isAdmin === true
+  }
 }
 
 // 2. Initialize router
@@ -35,7 +49,13 @@ actions.router.initializeRouter(routes)
 // 3. Navigate in components
 actions.router.navigateTo('/users/:id', { tab: 'edit' }, { id: '123' })
 
-// 4. Access current route
+// 4. Check route access
+const accessResult = actions.router.checkRouteAccess({
+  routeConfig: routes['/admin'],
+  user: currentUser
+})
+
+// 5. Access current route
 const { router } = useAppState()
 if (router.current === 'ROUTER_READY') {
   const { pattern, routeParams } = router.currentRoute
@@ -76,24 +96,6 @@ This makes debugging routing issues straightforward, as you can observe the enti
 ## TODO: Future Enhancements
 
 ### Security Features
-
-- **Route Guards & Permissions**
-
-  ```typescript
-  const routes = {
-    '/admin': {
-      name: 'admin',
-      requiresAuth: true,
-      requiredRoles: ['admin'],
-      permissions: ['admin.read']
-    },
-    '/users/:id/edit': {
-      name: 'userEdit',
-      requiresAuth: true,
-      guard: (user, params) => user.id === params.id || user.hasRole('admin')
-    }
-  }
-  ```
 
 - **Authentication Integration**
   - Automatic redirect to login for protected routes

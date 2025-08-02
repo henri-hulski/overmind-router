@@ -22,6 +22,9 @@ export const ClientDetail: React.FC<Props> = ({ clientId }) => {
   const client = clients.clients.find((c: ClientT) => c.id === clientId)
   const error = clients.error
 
+  // Check if user can edit/delete clients
+  const canEditClient = () => actions.clients.canEditClient()
+
   useEffect(() => {
     if (!client && clients.current !== 'FETCH_CLIENTS_IN_PROGRESS') {
       actions.clients.loadClient(clientId)
@@ -93,21 +96,30 @@ export const ClientDetail: React.FC<Props> = ({ clientId }) => {
           </button>
           <h1>{client.name}</h1>
         </div>
-        <div className="header-actions">
-          <button
-            onClick={() =>
-              actions.router.navigateTo({
-                pattern: '/clients/:id/edit',
-                routeParams: { id: clientId.toString() },
-              })
-            }
-            className="btn btn-primary"
-          >
-            Edit Client
-          </button>
-          <button onClick={handleDeleteClient} className="btn btn-danger">
-            Delete Client
-          </button>
+        {/* Edit and Delete Actions */}
+        <div className="client-detail-header-actions">
+          {canEditClient() && (
+            <>
+              <button
+                onClick={() =>
+                  actions.router.navigateTo({
+                    pattern: '/clients/:id/edit',
+                    routeParams: { id: clientId.toString() },
+                  })
+                }
+                className="btn-primary"
+              >
+                Edit Client
+              </button>
+              <button
+                onClick={handleDeleteClient}
+                className="btn-danger"
+                style={{ marginLeft: '10px' }}
+              >
+                Delete Client
+              </button>
+            </>
+          )}
         </div>
       </div>
 

@@ -65,6 +65,14 @@ vi.mock('../../components/ClientEdit', () => ({
   ),
 }))
 
+vi.mock('../../components/Login', () => ({
+  Login: () => <div data-testid="login">Login Component</div>,
+}))
+
+vi.mock('../../components/Admin', () => ({
+  Admin: () => <div data-testid="admin">Admin Component</div>,
+}))
+
 describe('Router Integration Tests', () => {
   let overmind: ReturnType<typeof createOvermindMock<typeof config>>
 
@@ -390,6 +398,29 @@ describe('Router Integration Tests', () => {
             deleteClient: vi.fn(() => Promise.resolve()),
           },
         },
+        auth: {
+          authenticateUser: vi.fn(() =>
+            Promise.resolve({
+              id: '1',
+              email: 'test@example.com',
+              name: 'Test User',
+              isAdmin: false,
+              isManager: false,
+              roles: [],
+            })
+          ),
+          getCurrentUser: vi.fn(() =>
+            Promise.resolve({
+              id: '1',
+              email: 'test@example.com',
+              name: 'Test User',
+              isAdmin: false,
+              isManager: false,
+              roles: [],
+            })
+          ),
+          logout: vi.fn(() => Promise.resolve()),
+        },
       },
       (state) => {
         // Initialize app state machine
@@ -410,6 +441,19 @@ describe('Router Integration Tests', () => {
           state.clients.clients = []
           state.clients.selectedClient = null
           state.clients.error = null
+        }
+
+        // Initialize auth state
+        state.auth.current = 'AUTHENTICATED'
+        if (state.auth.current === 'AUTHENTICATED') {
+          state.auth.user = {
+            id: '1',
+            email: 'test@example.com',
+            name: 'Test User',
+            isAdmin: false,
+            isManager: false,
+            roles: [],
+          }
         }
       }
     )
@@ -517,6 +561,29 @@ describe('Router Integration Tests', () => {
               deleteClient: vi.fn(() => Promise.resolve()),
             },
           },
+          auth: {
+            authenticateUser: vi.fn(() =>
+              Promise.resolve({
+                id: '1',
+                email: 'test@example.com',
+                name: 'Test User',
+                isAdmin: false,
+                isManager: false,
+                roles: [],
+              })
+            ),
+            getCurrentUser: vi.fn(() =>
+              Promise.resolve({
+                id: '1',
+                email: 'test@example.com',
+                name: 'Test User',
+                isAdmin: false,
+                isManager: false,
+                roles: [],
+              })
+            ),
+            logout: vi.fn(() => Promise.resolve()),
+          },
         },
         (state) => {
           state.app.current = 'APP_READY'
@@ -535,6 +602,19 @@ describe('Router Integration Tests', () => {
             state.clients.clients = []
             state.clients.selectedClient = null
             state.clients.error = null
+          }
+
+          // Initialize auth state
+          state.auth.current = 'AUTHENTICATED'
+          if (state.auth.current === 'AUTHENTICATED') {
+            state.auth.user = {
+              id: '1',
+              email: 'test@example.com',
+              name: 'Test User',
+              isAdmin: false,
+              isManager: false,
+              roles: [],
+            }
           }
         }
       )

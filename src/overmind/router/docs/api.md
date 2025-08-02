@@ -146,6 +146,77 @@ actions.router.redirectTo({
 
 ---
 
+### `checkRouteAccess(payload: { routeConfig: RouteConfigT; user: UserT | null })`
+
+Check if a user has access to a specific route based on authentication and authorization rules.
+
+```typescript
+// Check access to admin route
+const accessResult = actions.router.checkRouteAccess({
+  routeConfig: routes['/admin'],
+  user: state.auth.currentUser
+})
+
+if (accessResult.allowed) {
+  // User can access the route
+  actions.router.navigateTo('/admin')
+} else {
+  // Handle access denied
+  if (accessResult.reason === 'authentication') {
+    actions.router.navigateTo('/login')
+  } else {
+    // Show unauthorized message
+    console.log(accessResult.message)
+  }
+}
+```
+
+**Parameters:**
+
+- `routeConfig` - Route configuration object with optional `requiresAuth` and `guard` properties
+- `user` - Current user object (can be null)
+
+**Returns:** `RouteGuardResult`
+
+```typescript
+type RouteGuardResult = {
+  allowed: boolean
+  reason?: 'authentication' | 'authorization'
+  message?: string
+}
+```
+
+**Examples:**
+
+```typescript
+// Public route
+const publicResult = actions.router.checkRouteAccess({
+  routeConfig: { params: [] },
+  user: null
+})
+// Returns: { allowed: true }
+
+// Protected route without user
+const protectedResult = actions.router.checkRouteAccess({
+  routeConfig: { params: [], requiresAuth: true },
+  user: null
+})
+// Returns: { allowed: false, reason: 'authentication', message: 'Authentication required' }
+
+// Admin route with non-admin user
+const adminResult = actions.router.checkRouteAccess({
+  routeConfig: {
+    params: [],
+    requiresAuth: true,
+    guard: (user) => user?.isAdmin === true
+  },
+  user: { id: '123', isAdmin: false }
+})
+// Returns: { allowed: false, reason: 'authorization', message: 'Insufficient permissions' }
+```
+
+---
+
 ### `onPopState()`
 
 Handle browser popstate events (back/forward buttons).
@@ -202,20 +273,84 @@ switch (router.current) {
 
 ### `RouteConfigT` and `RoutesT`
 
-Route definition object.
+Route definition object with authentication and authorization support.
 
 ```typescript
 type RouteConfigT = {
   params?: string[]
+  requiresAuth?: boolean
+  guard?: RouteGuard
 }
+
+type RouteGuard = (user: UserT | null) => boolean
 
 type RoutesT = Record<string, RouteConfigT>
 
 // Example
 const routes: RoutesT = {
-  '/': { name: 'home' },
-  '/users/:id': { name: 'userDetail', auth: true },
-  '/admin': { name: 'admin', role: 'admin' }
+  '/': {
+    params: []
+  },
+  '/login': {
+    params: []
+  },
+  '/dashboard': {
+    params: ['view'],
+    requiresAuth: true
+  },
+  '/admin': {
+    params: [],
+    requiresAuth: true,
+    guard: (user) => user?.isAdmin === true
+  }
+}
+```
+
+### `UserT`
+
+Generic user type - can be any type your application uses.
+
+```typescript
+type UserT = unknown
+
+// In your application, cast to your specific user type
+interface MyAppUser {
+  id: string
+  email: string
+  isAdmin?: boolean
+  roles?: string[]
+}
+
+const requiresAdmin = (user: UserT | null) => {
+  const typedUser = user as MyAppUser | null
+  return typedUser?.isAdmin === true
+}
+```
+
+### `RouteGuardResult`
+
+Result of route access check.
+
+```typescript
+type RouteGuardResult = {
+  allowed: boolean
+  reason?: 'authentication' | 'authorization'
+  message?: string
+}
+
+// Examples
+const allowedResult: RouteGuardResult = { allowed: true }
+
+const authRequiredResult: RouteGuardResult = {
+  allowed: false,
+  reason: 'authentication',
+  message: 'Authentication required'
+}
+
+const unauthorizedResult: RouteGuardResult = {
+  allowed: false,
+  reason: 'authorization',
+  message: 'Insufficient permissions'
 }
 ```
 

@@ -1,10 +1,22 @@
 export type ParamsT = Record<string, string>
 
+export type UserT = unknown
+
+export type RouteGuard = (user: UserT | null) => boolean
+
 export type RouteConfigT = {
   params?: string[]
+  requiresAuth?: boolean
+  guard?: RouteGuard
 }
 
 export type RoutesT = Record<string, RouteConfigT>
+
+export type RouteGuardResult = {
+  allowed: boolean
+  reason?: 'authentication' | 'authorization'
+  message?: string
+}
 
 type BaseRouteT = {
   pattern: string

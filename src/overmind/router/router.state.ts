@@ -174,8 +174,6 @@ const routerMachine = statemachine<States, Events, BaseState>({
 })
 
 export const state = routerMachine.create(
-  {
-    current: 'ROUTER_INITIAL',
-  },
+  { current: 'ROUTER_INITIAL' },
   { routes: {} }
 )

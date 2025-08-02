@@ -65,6 +65,9 @@ export const ClientList: React.FC = () => {
     }
   }
 
+  // Check if user can edit/delete clients
+  const canEditClient = () => actions.clients.canEditClient()
+
   if (isLoading) {
     return <div className="loading">Loading clients...</div>
   }
@@ -130,23 +133,27 @@ export const ClientList: React.FC = () => {
                     >
                       View
                     </button>
-                    <button
-                      onClick={() =>
-                        actions.router.navigateTo({
-                          pattern: '/clients/:id/edit',
-                          routeParams: { id: client.id.toString() },
-                        })
-                      }
-                      className="btn btn-small"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClient(client.id)}
-                      className="btn btn-small btn-danger"
-                    >
-                      Delete
-                    </button>
+                    {canEditClient() && (
+                      <>
+                        <button
+                          onClick={() =>
+                            actions.router.navigateTo({
+                              pattern: '/clients/:id/edit',
+                              routeParams: { id: client.id.toString() },
+                            })
+                          }
+                          className="btn btn-small"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClient(client.id)}
+                          className="btn btn-small btn-danger"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="client-info">

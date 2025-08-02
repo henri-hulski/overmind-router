@@ -60,7 +60,7 @@ export const createClient = async (
 }
 
 export const updateClient = async (
-  { state, effects }: Context,
+  { state, effects, actions }: Context,
   payload: { id: number; updates: Partial<PostClientT> }
 ) => {
   state.clients.send('UPDATE_CLIENT_REQUESTED')
@@ -71,6 +71,12 @@ export const updateClient = async (
       payload.updates
     )
     state.clients.send('UPDATE_CLIENT_RESOLVED', { client: updatedClient })
+
+    actions.router.navigateTo({
+      pattern: '/clients/:id',
+      routeParams: { id: updatedClient.id.toString() },
+    })
+
     return updatedClient
   } catch (error) {
     const errorMessage =
@@ -80,10 +86,32 @@ export const updateClient = async (
   }
 }
 
+export const canEditClient = ({ state, actions }: Context): boolean => {
+  const currentUser =
+    state.auth.current === 'AUTHENTICATED' ? state.auth.user : null
+  const editRouteConfig = state.router.routes['/clients/:id/edit']
+
+  if (!editRouteConfig) return false
+
+  const result = actions.router.checkRouteAccess({
+    routeConfig: editRouteConfig,
+    user: currentUser,
+  })
+
+  return result.allowed
+}
+
 export const deleteClient = async (
   { state, effects, actions }: Context,
   clientId: number
 ) => {
+  // Check permissions before attempting to delete
+  if (!actions.clients.canEditClient()) {
+    const errorMessage = 'You do not have permission to delete clients'
+    state.clients.send('DELETE_CLIENT_REJECTED', { error: errorMessage })
+    throw new Error(errorMessage)
+  }
+
   state.clients.send('DELETE_CLIENT_REQUESTED')
 
   try {

@@ -1,14 +1,17 @@
 import React, { useEffect } from 'react'
 
 import { useActions, useAppState } from '../../overmind'
+import { routes } from '../../routes'
+import { Admin } from '../Admin'
 import { ClientDetail } from '../ClientDetail'
 import { ClientEdit } from '../ClientEdit'
 import { ClientList } from '../ClientList'
 import { ClientNew } from '../ClientNew'
 import { Dashboard } from '../Dashboard'
+import { Login } from '../Login'
 
 export default function App() {
-  const { router, app } = useAppState()
+  const { router, app, auth } = useAppState()
   const actions = useActions()
 
   useEffect(() => {
@@ -17,8 +20,26 @@ export default function App() {
     }
   }, [app.current, actions.app])
 
+  // Helper to check if user can access a route
+  const canAccess = (routePattern: string) => {
+    const routeConfig = routes[routePattern]
+    if (!routeConfig) return false
+
+    const currentUser = auth.current === 'AUTHENTICATED' ? auth.user : null
+
+    const result = actions.router.checkRouteAccess({
+      routeConfig,
+      user: currentUser,
+    })
+    return result.allowed
+  }
+
   // Show loading state while app is initializing
-  if (app.current === 'APP_INITIAL' || router.current === 'ROUTER_INITIAL') {
+  if (
+    app.current === 'APP_INITIAL' ||
+    router.current === 'ROUTER_INITIAL' ||
+    auth.current === 'SESSION_CHECK_IN_PROGRESS'
+  ) {
     return (
       <div className="loading-screen">
         <div className="loading-spinner"></div>
@@ -73,45 +94,103 @@ export default function App() {
 
   const { pattern, routeParams } = router.currentRoute
 
+  // Check route access for protected routes
+  const routeConfig = routes[pattern]
+  if (routeConfig) {
+    const currentUser = auth.current === 'AUTHENTICATED' ? auth.user : null
+
+    const accessResult = actions.router.checkRouteAccess({
+      routeConfig,
+      user: currentUser,
+    })
+
+    if (!accessResult.allowed) {
+      if (accessResult.reason === 'authentication') {
+        // Redirect to login if not authenticated
+        if (pattern !== '/login') {
+          actions.router.navigateTo({
+            pattern: '/login',
+            params: { returnUrl: window.location.pathname },
+          })
+          return null
+        }
+      } else {
+        // Show unauthorized page for authorization failures
+        return (
+          <div className="app">
+            <div className="error-page">
+              <h1>Access Denied</h1>
+              <p>{accessResult.message}</p>
+              <button
+                onClick={() => actions.router.navigateTo('/')}
+                className="btn-primary"
+              >
+                Go Home
+              </button>
+            </div>
+          </div>
+        )
+      }
+    }
+  }
+
   return (
     <div className="app">
-      <nav className="navbar">
-        <div className="nav-brand">
-          <h1
-            onClick={() => actions.router.navigateTo({ pattern: '/' })}
-            style={{ cursor: 'pointer' }}
-          >
-            Client Manager
-          </h1>
-        </div>
-        <div className="nav-links">
-          <button
-            onClick={() => actions.router.navigateTo({ pattern: '/' })}
-            className={`nav-link ${pattern === '/' ? 'active' : ''}`}
-          >
-            Dashboard
-          </button>
-          <button
-            onClick={() => {
-              actions.router.navigateTo({ pattern: '/clients' })
-            }}
-            className={`nav-link ${pattern === '/clients' ? 'active' : ''}`}
-          >
-            Clients
-          </button>
-          <button
-            onClick={() =>
-              actions.router.navigateTo({ pattern: '/clients/new' })
-            }
-            className={`nav-link ${pattern === '/clients/new' ? 'active' : ''}`}
-          >
-            Add Client
-          </button>
-        </div>
-      </nav>
+      {auth.current === 'AUTHENTICATED' && (
+        <nav className="navbar">
+          <div className="nav-brand">
+            <h1
+              onClick={() => actions.router.navigateTo('/')}
+              style={{ cursor: 'pointer' }}
+            >
+              Client Manager
+            </h1>
+          </div>
+          <div className="nav-links">
+            <button
+              onClick={() => actions.router.navigateTo('/')}
+              className={`nav-link ${pattern === '/' ? 'active' : ''}`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => actions.router.navigateTo('/clients')}
+              className={`nav-link ${pattern === '/clients' ? 'active' : ''}`}
+            >
+              Clients
+            </button>
+            {canAccess('/clients/new') && (
+              <button
+                onClick={() => actions.router.navigateTo('/clients/new')}
+                className={`nav-link ${pattern === '/clients/new' ? 'active' : ''}`}
+              >
+                Add Client
+              </button>
+            )}
+            {canAccess('/admin') && (
+              <button
+                onClick={() => actions.router.navigateTo('/admin')}
+                className={`nav-link ${pattern === '/admin' ? 'active' : ''}`}
+              >
+                Admin
+              </button>
+            )}
+          </div>
+          <div className="nav-user">
+            <span>Welcome, {auth.user.name}</span>
+            <button
+              onClick={() => actions.auth.logout()}
+              className="btn-secondary"
+            >
+              Logout
+            </button>
+          </div>
+        </nav>
+      )}
 
       <main className="main-content">
         {pattern === '/' && <Dashboard />}
+        {pattern === '/login' && <Login />}
         {pattern === '/clients' && <ClientList />}
         {pattern === '/clients/new' && <ClientNew />}
         {pattern === '/clients/:id' && routeParams?.id && (
@@ -120,6 +199,7 @@ export default function App() {
         {pattern === '/clients/:id/edit' && routeParams?.id && (
           <ClientEdit clientId={parseInt(routeParams.id)} />
         )}
+        {pattern === '/admin' && <Admin />}
       </main>
     </div>
   )

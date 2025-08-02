@@ -9,22 +9,65 @@ You should copy the `router` module from the `overmind` directory to your projec
 
 ## 2. Define Routes
 
-Create your route configuration:
+Create your route configuration with authentication and authorization:
 
 ```typescript
 // src/routes.ts
-import type { RoutesT } from './overmind/router/router.effects'
+import type { RoutesT, UserT } from './overmind/router/router.effects'
+
+// Define guard functions for authorization
+const requiresAdmin = (user: UserT | null) => {
+  if (!user || typeof user !== 'object' || user === null) return false
+  return 'isAdmin' in user && (user as Record<string, unknown>).isAdmin === true
+}
+
+const requiresManagerOrAdmin = (user: UserT | null) => {
+  if (!user || typeof user !== 'object' || user === null) return false
+  const userObj = user as Record<string, unknown>
+  return (
+    ('isAdmin' in user && userObj.isAdmin === true) ||
+    ('isManager' in user && userObj.isManager === true)
+  )
+}
 
 export const routes: RoutesT = {
-  '/': { name: 'home' },
-  '/clients': { name: 'clientList' },
-  '/clients/new': { name: 'clientNew' },
-  '/clients/:id': { name: 'clientDetail' },
-  '/clients/:id/edit': { name: 'clientEdit' },
-  '/login': { name: 'login' },
-  '/users/:userId/profile': { name: 'userProfile' }
+  '/': {
+    params: []
+  },
+  '/login': {
+    params: []
+  },
+  '/clients': {
+    params: ['search', 'page'],
+    requiresAuth: true
+  },
+  '/clients/new': {
+    params: [],
+    requiresAuth: true,
+    guard: requiresManagerOrAdmin
+  },
+  '/clients/:id': {
+    params: ['tab'],
+    requiresAuth: true
+  },
+  '/clients/:id/edit': {
+    params: [],
+    requiresAuth: true,
+    guard: requiresManagerOrAdmin
+  },
+  '/admin': {
+    params: [],
+    requiresAuth: true,
+    guard: requiresAdmin
+  }
 }
 ```
+
+### Route Properties
+
+- **`params`** - Array of expected query parameter names
+- **`requiresAuth`** - Boolean indicating if route requires authentication
+- **`guard`** - Function to check authorization (receives user, returns boolean)
 
 ## 3. Initialize Router in Overmind
 

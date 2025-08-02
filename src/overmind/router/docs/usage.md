@@ -211,6 +211,105 @@ export const onInitializeOvermind = async ({ state, actions }: Context) => {
 }
 ```
 
+## Route Access Control
+
+### Checking Route Access
+
+Use the `checkRouteAccess` action to verify if a user can access a specific route:
+
+```typescript
+// Check if current user can access admin routes
+const adminRoute = routes['/admin']
+const accessResult = actions.router.checkRouteAccess({
+  routeConfig: adminRoute,
+  user: state.auth.currentUser
+})
+
+if (accessResult.allowed) {
+  // User can access the route
+  actions.router.navigateTo('/admin')
+} else {
+  // Handle access denied
+  console.log(`Access denied: ${accessResult.message}`)
+  if (accessResult.reason === 'authentication') {
+    actions.router.navigateTo('/login')
+  } else {
+    // Show unauthorized message
+  }
+}
+```
+
+### Authentication Guards
+
+Routes with `requiresAuth: true` automatically check if a user is present:
+
+```typescript
+const protectedRoutes = {
+  '/dashboard': {
+    params: [],
+    requiresAuth: true // Requires user to be authenticated
+  }
+}
+
+// Check access
+const result = actions.router.checkRouteAccess({
+  routeConfig: protectedRoutes['/dashboard'],
+  user: null // No user = access denied
+})
+// result = { allowed: false, reason: 'authentication', message: 'Authentication required' }
+```
+
+### Authorization Guards
+
+Use custom guard functions for role-based access:
+
+```typescript
+const requiresAdmin = (user: UserT | null) => {
+  if (!user || typeof user !== 'object' || user === null) return false
+  return 'isAdmin' in user && (user as Record<string, unknown>).isAdmin === true
+}
+
+const adminRoutes = {
+  '/admin': {
+    params: [],
+    requiresAuth: true,
+    guard: requiresAdmin // Check if user is admin
+  }
+}
+```
+
+### Integration with Components
+
+Check route access in your components:
+
+```typescript
+function Navigation() {
+  const { auth, router } = useAppState()
+  const actions = useActions()
+
+  const canAccessAdmin = () => {
+    const result = actions.router.checkRouteAccess({
+      routeConfig: routes['/admin'],
+      user: auth.currentUser
+    })
+    return result.allowed
+  }
+
+  return (
+    <nav>
+      <NavLink to="/">Home</NavLink>
+      <NavLink to="/clients">Clients</NavLink>
+      {auth.currentUser && (
+        <NavLink to="/dashboard">Dashboard</NavLink>
+      )}
+      {canAccessAdmin() && (
+        <NavLink to="/admin">Admin</NavLink>
+      )}
+    </nav>
+  )
+}
+```
+
 ## Best Practices
 
 1. **Always check router state** before accessing `currentRoute`

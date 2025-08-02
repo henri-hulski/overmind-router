@@ -2,7 +2,13 @@ import { createOvermindMock } from 'overmind'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { config } from '../index'
-import type { ParamsT, ParsedRouteT, RoutesT, RouteT } from './router.effects'
+import type {
+  ParamsT,
+  ParsedRouteT,
+  RoutesT,
+  RouteT,
+  UserT,
+} from './router.effects'
 import { routes } from './testRoutes'
 
 // Mock window.location and history
@@ -1253,6 +1259,125 @@ describe('Router Actions', () => {
       mockLocation.href = 'http://localhost:3000/'
       failureOvermind.actions.router.initializeRouter(routes)
       expect(failureOvermind.state.router.current).toBe('ROUTER_READY')
+    })
+  })
+
+  describe('Route Guards', () => {
+    const authenticatedUser = { id: '1', email: 'user@example.com' }
+    const adminUser = { id: '2', email: 'admin@example.com', isAdmin: true }
+    const managerUser = {
+      id: '3',
+      email: 'manager@example.com',
+      isManager: true,
+    }
+
+    const requiresAdmin = (user: UserT | null) => {
+      if (!user || typeof user !== 'object' || user === null) return false
+      return (
+        'isAdmin' in user && (user as Record<string, unknown>).isAdmin === true
+      )
+    }
+
+    const requiresManagerOrAdmin = (user: UserT | null) => {
+      if (!user || typeof user !== 'object' || user === null) return false
+      const userObj = user as Record<string, unknown>
+      return (
+        ('isAdmin' in user && userObj.isAdmin === true) ||
+        ('isManager' in user && userObj.isManager === true)
+      )
+    }
+
+    const guardRoutes: RoutesT = {
+      '/': { params: [] },
+      '/public': { params: [] },
+      '/protected': { params: [], requiresAuth: true },
+      '/admin': {
+        params: [],
+        requiresAuth: true,
+        guard: requiresAdmin,
+      },
+      '/management': {
+        params: [],
+        requiresAuth: true,
+        guard: requiresManagerOrAdmin,
+      },
+    }
+
+    beforeEach(() => {
+      overmind = createOvermindMock(config, {
+        router: {
+          matchRoute: mockMatchRoute,
+          getCurrentRoute: () => null,
+        },
+      })
+      overmind.actions.router.initializeRouter(guardRoutes)
+    })
+
+    test('allows access to public routes', () => {
+      const result = overmind.actions.router.checkRouteAccess({
+        routeConfig: guardRoutes['/public']!,
+        user: null,
+      })
+      expect(result.allowed).toBe(true)
+    })
+
+    test('blocks unauthenticated users from protected routes', () => {
+      const result = overmind.actions.router.checkRouteAccess({
+        routeConfig: guardRoutes['/protected']!,
+        user: null,
+      })
+      expect(result.allowed).toBe(false)
+      expect(result.reason).toBe('authentication')
+    })
+
+    test('allows authenticated users to protected routes', () => {
+      const result = overmind.actions.router.checkRouteAccess({
+        routeConfig: guardRoutes['/protected']!,
+        user: authenticatedUser,
+      })
+      expect(result.allowed).toBe(true)
+    })
+
+    test('blocks non-admin users from admin routes', () => {
+      const result = overmind.actions.router.checkRouteAccess({
+        routeConfig: guardRoutes['/admin']!,
+        user: authenticatedUser,
+      })
+      expect(result.allowed).toBe(false)
+      expect(result.reason).toBe('authorization')
+    })
+
+    test('allows admin users to admin routes', () => {
+      const result = overmind.actions.router.checkRouteAccess({
+        routeConfig: guardRoutes['/admin']!,
+        user: adminUser,
+      })
+      expect(result.allowed).toBe(true)
+    })
+
+    test('allows managers to management routes', () => {
+      const result = overmind.actions.router.checkRouteAccess({
+        routeConfig: guardRoutes['/management']!,
+        user: managerUser,
+      })
+      expect(result.allowed).toBe(true)
+    })
+
+    test('allows admins to management routes', () => {
+      const result = overmind.actions.router.checkRouteAccess({
+        routeConfig: guardRoutes['/management']!,
+        user: adminUser,
+      })
+      expect(result.allowed).toBe(true)
+    })
+
+    test('blocks regular users from management routes', () => {
+      const result = overmind.actions.router.checkRouteAccess({
+        routeConfig: guardRoutes['/management']!,
+        user: authenticatedUser,
+      })
+      expect(result.allowed).toBe(false)
+      expect(result.reason).toBe('authorization')
     })
   })
 })

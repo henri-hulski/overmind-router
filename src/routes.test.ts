@@ -12,10 +12,12 @@ describe('Routes Configuration', () => {
   test('should contain all expected route patterns', () => {
     const expectedRoutes = [
       '/',
+      '/login',
       '/clients',
       '/clients/new',
       '/clients/:id',
       '/clients/:id/edit',
+      '/admin',
     ]
 
     expectedRoutes.forEach((route) => {
@@ -25,10 +27,24 @@ describe('Routes Configuration', () => {
 
   test('should have correct parameter configuration for each route', () => {
     expect(routes['/']).toEqual({ params: [] })
-    expect(routes['/clients']).toEqual({ params: ['search', 'page'] })
-    expect(routes['/clients/new']).toEqual({ params: [] })
-    expect(routes['/clients/:id']).toEqual({ params: ['tab'] })
-    expect(routes['/clients/:id/edit']).toEqual({ params: [] })
+    expect(routes['/login']).toEqual({ params: [] })
+    expect(routes['/clients']).toMatchObject({
+      params: ['search', 'page'],
+      requiresAuth: true,
+    })
+    expect(routes['/clients/new']).toMatchObject({
+      params: [],
+      requiresAuth: true,
+    })
+    expect(routes['/clients/:id']).toMatchObject({
+      params: ['tab'],
+      requiresAuth: true,
+    })
+    expect(routes['/clients/:id/edit']).toMatchObject({
+      params: [],
+      requiresAuth: true,
+    })
+    expect(routes['/admin']).toMatchObject({ params: [], requiresAuth: true })
   })
 
   test('should have proper structure for route configurations', () => {

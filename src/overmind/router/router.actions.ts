@@ -1,5 +1,12 @@
 import type { Context } from '../index'
-import type { ParamsT, RoutesT, RouteT } from './router.effects'
+import type {
+  ParamsT,
+  RouteConfigT,
+  RouteGuardResult,
+  RoutesT,
+  RouteT,
+  UserT,
+} from './router.effects'
 
 export const initializeRouter = (
   { state, effects }: Context,
@@ -213,4 +220,41 @@ export const onPopState = ({ state, effects }: Context) => {
       requestedPath: window.location.pathname,
     })
   }
+}
+
+export const checkRouteAccess = (
+  _: Context,
+  payload: { routeConfig: RouteConfigT; user: UserT | null }
+): RouteGuardResult => {
+  const { routeConfig, user } = payload
+
+  // Check authentication
+  if (routeConfig.requiresAuth && !user) {
+    return {
+      allowed: false,
+      reason: 'authentication',
+      message: 'Authentication required',
+    }
+  }
+
+  // Check custom guard
+  if (routeConfig.guard) {
+    try {
+      if (!routeConfig.guard(user)) {
+        return {
+          allowed: false,
+          reason: 'authorization',
+          message: 'Insufficient permissions',
+        }
+      }
+    } catch {
+      return {
+        allowed: false,
+        reason: 'authorization',
+        message: 'Guard function error',
+      }
+    }
+  }
+
+  return { allowed: true }
 }

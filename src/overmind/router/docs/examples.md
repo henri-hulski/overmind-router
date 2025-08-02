@@ -2,6 +2,303 @@
 
 Practical examples of using the Overmind router in real applications.
 
+## Authentication and Authorization Example
+
+### 1. Route Definition with Guards
+
+```typescript
+// src/routes.ts
+import type { RoutesT, UserT } from './overmind/router/router.effects'
+
+// Define your user type for the application
+interface AppUser {
+  id: string
+  email: string
+  isAdmin?: boolean
+  isManager?: boolean
+  roles?: string[]
+}
+
+// Guard functions
+const requiresAdmin = (user: UserT | null) => {
+  if (!user || typeof user !== 'object' || user === null) return false
+  const typedUser = user as AppUser
+  return typedUser.isAdmin === true
+}
+
+const requiresManagerOrAdmin = (user: UserT | null) => {
+  if (!user || typeof user !== 'object' || user === null) return false
+  const typedUser = user as AppUser
+  return typedUser.isAdmin === true || typedUser.isManager === true
+}
+
+const canEditClient = (user: UserT | null) => {
+  if (!user || typeof user !== 'object' || user === null) return false
+  const typedUser = user as AppUser
+  return (
+    typedUser.isAdmin ||
+    typedUser.isManager ||
+    typedUser.roles?.includes('client-editor')
+  )
+}
+
+export const routes: RoutesT = {
+  '/': {
+    params: []
+  },
+  '/login': {
+    params: ['returnUrl']
+  },
+  '/dashboard': {
+    params: ['view'],
+    requiresAuth: true
+  },
+  '/clients': {
+    params: ['search', 'page', 'filter'],
+    requiresAuth: true
+  },
+  '/clients/new': {
+    params: [],
+    requiresAuth: true,
+    guard: requiresManagerOrAdmin
+  },
+  '/clients/:id': {
+    params: ['tab'],
+    requiresAuth: true
+  },
+  '/clients/:id/edit': {
+    params: [],
+    requiresAuth: true,
+    guard: canEditClient
+  },
+  '/admin': {
+    params: [],
+    requiresAuth: true,
+    guard: requiresAdmin
+  },
+  '/admin/users': {
+    params: ['search'],
+    requiresAuth: true,
+    guard: requiresAdmin
+  }
+}
+```
+
+### 2. Protected Navigation Hook
+
+```typescript
+// src/hooks/useProtectedNavigation.ts
+import { useActions, useAppState } from '../overmind'
+import { routes } from '../routes'
+
+export function useProtectedNavigation() {
+  const { auth } = useAppState()
+  const actions = useActions()
+
+  const navigateToProtected = (
+    routePattern: string,
+    params?: any,
+    routeParams?: any
+  ) => {
+    const routeConfig = routes[routePattern]
+
+    if (!routeConfig) {
+      console.error(`Route not found: ${routePattern}`)
+      return false
+    }
+
+    // Check access
+    const accessResult = actions.router.checkRouteAccess({
+      routeConfig,
+      user: auth.currentUser
+    })
+
+    if (accessResult.allowed) {
+      actions.router.navigateTo({
+        pattern: routePattern,
+        params,
+        routeParams
+      })
+      return true
+    } else {
+      // Handle access denied
+      if (accessResult.reason === 'authentication') {
+        actions.router.navigateTo({
+          pattern: '/login',
+          params: { returnUrl: window.location.pathname }
+        })
+      } else {
+        // Show unauthorized message
+        actions.app.showMessage({
+          type: 'error',
+          message: 'You do not have permission to access this page'
+        })
+      }
+      return false
+    }
+  }
+
+  return { navigateToProtected }
+}
+```
+
+### 3. Navigation Component with Access Control
+
+```tsx
+// src/components/Navigation/index.tsx
+import React from 'react'
+import { useActions, useAppState } from '../../overmind'
+import { routes } from '../../routes'
+
+export default function Navigation() {
+  const { auth, router } = useAppState()
+  const actions = useActions()
+
+  const checkAccess = (routePattern: string) => {
+    const routeConfig = routes[routePattern]
+    if (!routeConfig) return false
+
+    const result = actions.router.checkRouteAccess({
+      routeConfig,
+      user: auth.currentUser
+    })
+    return result.allowed
+  }
+
+  const isActive = (pattern: string) => {
+    return (
+      router.current === 'ROUTER_READY' &&
+      router.currentRoute?.pattern === pattern
+    )
+  }
+
+  return (
+    <nav className="navigation">
+      <ul>
+        <li>
+          <button
+            className={isActive('/') ? 'active' : ''}
+            onClick={() => actions.router.navigateTo('/')}
+          >
+            Home
+          </button>
+        </li>
+
+        {auth.currentUser ? (
+          <>
+            <li>
+              <button
+                className={isActive('/dashboard') ? 'active' : ''}
+                onClick={() => actions.router.navigateTo('/dashboard')}
+              >
+                Dashboard
+              </button>
+            </li>
+
+            <li>
+              <button
+                className={isActive('/clients') ? 'active' : ''}
+                onClick={() => actions.router.navigateTo('/clients')}
+              >
+                Clients
+              </button>
+            </li>
+
+            {checkAccess('/clients/new') && (
+              <li>
+                <button
+                  className={isActive('/clients/new') ? 'active' : ''}
+                  onClick={() => actions.router.navigateTo('/clients/new')}
+                >
+                  New Client
+                </button>
+              </li>
+            )}
+
+            {checkAccess('/admin') && (
+              <li>
+                <button
+                  className={isActive('/admin') ? 'active' : ''}
+                  onClick={() => actions.router.navigateTo('/admin')}
+                >
+                  Admin
+                </button>
+              </li>
+            )}
+
+            <li>
+              <button onClick={() => actions.auth.logout()}>Logout</button>
+            </li>
+          </>
+        ) : (
+          <li>
+            <button
+              className={isActive('/login') ? 'active' : ''}
+              onClick={() => actions.router.navigateTo('/login')}
+            >
+              Login
+            </button>
+          </li>
+        )}
+      </ul>
+    </nav>
+  )
+}
+```
+
+### 4. Route Guard Middleware
+
+```typescript
+// src/overmind/router/router.middleware.ts
+import type { Context } from '../index'
+import { routes } from '../../routes'
+
+export const routeGuardMiddleware = ({ state, actions }: Context) => {
+  // Only run for authenticated routes
+  if (state.router.current !== 'ROUTER_READY' || !state.router.currentRoute) {
+    return
+  }
+
+  const currentRoute = state.router.currentRoute
+  const routeConfig = routes[currentRoute.pattern]
+
+  if (!routeConfig) return
+
+  // Check access for current route
+  const accessResult = actions.router.checkRouteAccess({
+    routeConfig,
+    user: state.auth.currentUser
+  })
+
+  if (!accessResult.allowed) {
+    if (accessResult.reason === 'authentication') {
+      // Redirect to login
+      actions.router.redirectTo({
+        pattern: '/login',
+        params: { returnUrl: currentRoute.path }
+      })
+    } else {
+      // Redirect to unauthorized page or home
+      actions.router.redirectTo('/')
+      actions.app.showMessage({
+        type: 'error',
+        message: 'Access denied: ' + accessResult.message
+      })
+    }
+  }
+}
+
+// Usage in your app initialization
+export const onInitializeOvermind = async ({ state, actions }: Context) => {
+  actions.router.initializeRouter(routes)
+
+  // Run route guard on every route change
+  state.router.addListener('ROUTER_READY', () => {
+    routeGuardMiddleware({ state, actions })
+  })
+}
+```
+
 ## Complete App Setup
 
 ### 1. Route Definition
