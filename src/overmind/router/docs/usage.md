@@ -264,16 +264,13 @@ const result = actions.router.checkRouteAccess({
 Use custom guard functions for role-based access:
 
 ```typescript
-const requiresAdmin = (user: UserT | null) => {
-  if (!user || typeof user !== 'object' || user === null) return false
-  return 'isAdmin' in user && (user as Record<string, unknown>).isAdmin === true
-}
+const hasAdminRole = (user: UserT | null) => !!(user && user.isAdmin)
 
 const adminRoutes = {
   '/admin': {
     params: [],
     requiresAuth: true,
-    guard: requiresAdmin // Check if user is admin
+    guard: hasAdminRole // Check if user is admin
   }
 }
 ```

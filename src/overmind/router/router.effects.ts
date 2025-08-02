@@ -1,6 +1,7 @@
 export type ParamsT = Record<string, string>
 
-export type UserT = unknown
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type UserT = any
 
 export type RouteGuard = (user: UserT | null) => boolean
 

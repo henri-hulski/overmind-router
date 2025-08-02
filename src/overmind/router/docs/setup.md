@@ -13,22 +13,13 @@ Create your route configuration with authentication and authorization:
 
 ```typescript
 // src/routes.ts
-import type { RoutesT, UserT } from './overmind/router/router.effects'
+import type { RoutesT } from './overmind/router/router.effects'
+import type { UserT } from './overmind/auth/auth.effects'
 
-// Define guard functions for authorization
-const requiresAdmin = (user: UserT | null) => {
-  if (!user || typeof user !== 'object' || user === null) return false
-  return 'isAdmin' in user && (user as Record<string, unknown>).isAdmin === true
-}
-
-const requiresManagerOrAdmin = (user: UserT | null) => {
-  if (!user || typeof user !== 'object' || user === null) return false
-  const userObj = user as Record<string, unknown>
-  return (
-    ('isAdmin' in user && userObj.isAdmin === true) ||
-    ('isManager' in user && userObj.isManager === true)
-  )
-}
+// Guard functions
+const hasAdminRole = (user: UserT | null) => !!(user && user.isAdmin)
+const hasManagerRole = (user: UserT | null) =>
+  !!(user && (user.isAdmin || user.isManager))
 
 export const routes: RoutesT = {
   '/': {
@@ -44,7 +35,7 @@ export const routes: RoutesT = {
   '/clients/new': {
     params: [],
     requiresAuth: true,
-    guard: requiresManagerOrAdmin
+    guard: hasManagerRole
   },
   '/clients/:id': {
     params: ['tab'],
@@ -53,12 +44,12 @@ export const routes: RoutesT = {
   '/clients/:id/edit': {
     params: [],
     requiresAuth: true,
-    guard: requiresManagerOrAdmin
+    guard: hasManagerRole
   },
   '/admin': {
     params: [],
     requiresAuth: true,
-    guard: requiresAdmin
+    guard: hasAdminRole
   }
 }
 ```

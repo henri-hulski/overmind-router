@@ -8,39 +8,18 @@ Practical examples of using the Overmind router in real applications.
 
 ```typescript
 // src/routes.ts
-import type { RoutesT, UserT } from './overmind/router/router.effects'
-
-// Define your user type for the application
-interface AppUser {
-  id: string
-  email: string
-  isAdmin?: boolean
-  isManager?: boolean
-  roles?: string[]
-}
+import type { RoutesT } from './overmind/router/router.effects'
+import type { UserT } from './overmind/auth/auth.effects'
 
 // Guard functions
-const requiresAdmin = (user: UserT | null) => {
-  if (!user || typeof user !== 'object' || user === null) return false
-  const typedUser = user as AppUser
-  return typedUser.isAdmin === true
-}
-
-const requiresManagerOrAdmin = (user: UserT | null) => {
-  if (!user || typeof user !== 'object' || user === null) return false
-  const typedUser = user as AppUser
-  return typedUser.isAdmin === true || typedUser.isManager === true
-}
-
-const canEditClient = (user: UserT | null) => {
-  if (!user || typeof user !== 'object' || user === null) return false
-  const typedUser = user as AppUser
-  return (
-    typedUser.isAdmin ||
-    typedUser.isManager ||
-    typedUser.roles?.includes('client-editor')
+const hasAdminRole = (user: UserT | null) => !!(user && user.isAdmin)
+const hasManagerRole = (user: UserT | null) =>
+  !!(user && (user.isAdmin || user.isManager))
+const canEditClient = (user: UserT | null) =>
+  !!(
+    user &&
+    (user.isAdmin || user.isManager || user.roles?.includes('client-editor'))
   )
-}
 
 export const routes: RoutesT = {
   '/': {
@@ -60,7 +39,7 @@ export const routes: RoutesT = {
   '/clients/new': {
     params: [],
     requiresAuth: true,
-    guard: requiresManagerOrAdmin
+    guard: hasManagerRole
   },
   '/clients/:id': {
     params: ['tab'],
@@ -74,12 +53,12 @@ export const routes: RoutesT = {
   '/admin': {
     params: [],
     requiresAuth: true,
-    guard: requiresAdmin
+    guard: hasAdminRole
   },
   '/admin/users': {
     params: ['search'],
     requiresAuth: true,
-    guard: requiresAdmin
+    guard: hasAdminRole
   }
 }
 ```
@@ -308,15 +287,15 @@ export const onInitializeOvermind = async ({ state, actions }: Context) => {
 import type { RoutesT } from './overmind/router/router.effects'
 
 export const routes: RoutesT = {
-  '/': { name: 'home' },
-  '/login': { name: 'login' },
-  '/dashboard': { name: 'dashboard' },
-  '/clients': { name: 'clientList' },
-  '/clients/new': { name: 'clientNew' },
-  '/clients/:id': { name: 'clientDetail' },
-  '/clients/:id/edit': { name: 'clientEdit' },
-  '/users/:userId/profile': { name: 'userProfile' },
-  '/settings': { name: 'settings' }
+  '/': {},
+  '/login': {},
+  '/dashboard': {},
+  '/clients': {},
+  '/clients/new': {},
+  '/clients/:id': {},
+  '/clients/:id/edit': {},
+  '/users/:userId/profile': {},
+  '/settings': {}
 }
 ```
 

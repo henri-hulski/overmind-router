@@ -311,20 +311,7 @@ const routes: RoutesT = {
 Generic user type - can be any type your application uses.
 
 ```typescript
-type UserT = unknown
-
-// In your application, cast to your specific user type
-interface MyAppUser {
-  id: string
-  email: string
-  isAdmin?: boolean
-  roles?: string[]
-}
-
-const requiresAdmin = (user: UserT | null) => {
-  const typedUser = user as MyAppUser | null
-  return typedUser?.isAdmin === true
-}
+type UserT = any
 ```
 
 ### `RouteGuardResult`

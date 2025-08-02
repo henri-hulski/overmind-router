@@ -1271,21 +1271,9 @@ describe('Router Actions', () => {
       isManager: true,
     }
 
-    const requiresAdmin = (user: UserT | null) => {
-      if (!user || typeof user !== 'object' || user === null) return false
-      return (
-        'isAdmin' in user && (user as Record<string, unknown>).isAdmin === true
-      )
-    }
-
-    const requiresManagerOrAdmin = (user: UserT | null) => {
-      if (!user || typeof user !== 'object' || user === null) return false
-      const userObj = user as Record<string, unknown>
-      return (
-        ('isAdmin' in user && userObj.isAdmin === true) ||
-        ('isManager' in user && userObj.isManager === true)
-      )
-    }
+    const hasAdminRole = (user: UserT) => user && !!user.isAdmin
+    const hasManagerRole = (user: UserT) =>
+      user && !!(user.isAdmin || user.isManager)
 
     const guardRoutes: RoutesT = {
       '/': { params: [] },
@@ -1294,12 +1282,12 @@ describe('Router Actions', () => {
       '/admin': {
         params: [],
         requiresAuth: true,
-        guard: requiresAdmin,
+        guard: hasAdminRole,
       },
       '/management': {
         params: [],
         requiresAuth: true,
-        guard: requiresManagerOrAdmin,
+        guard: hasManagerRole,
       },
     }
 
