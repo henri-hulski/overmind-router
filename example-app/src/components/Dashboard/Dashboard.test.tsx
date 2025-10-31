@@ -1,11 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { createOvermindMock } from 'overmind'
 import { Provider } from 'overmind-react'
+import type { RouteT } from 'overmind-router'
 import React from 'react'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { config } from '../../overmind'
-import type { RouteT } from '../../overmind/router/router.effects'
 import { Dashboard } from './index'
 
 describe('Dashboard Component', () => {
@@ -19,18 +19,17 @@ describe('Dashboard Component', () => {
     )
   }
 
-  let mockNavigateTo: ReturnType<typeof vi.fn>
+  let navigateSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
-    mockNavigateTo = vi.fn()
     overmind = createOvermindMock(
       config,
       {
         router: {
-          navigateTo: mockNavigateTo,
+          navigateTo: (_pattern: string, _params = {}, _routeParams = {}) => {},
           redirectTo: () => Promise.resolve(),
-          navigateBack: vi.fn(() => Promise.resolve()),
-          navigateForward: vi.fn(() => Promise.resolve()),
+          navigateBack: () => Promise.resolve(),
+          navigateForward: () => Promise.resolve(),
           parseRoute: (route: RouteT) => {
             if (typeof route === 'string') {
               return {
@@ -153,6 +152,9 @@ describe('Dashboard Component', () => {
         }
       }
     )
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    navigateSpy = vi.spyOn(overmind.effects.router as any, 'navigateTo')
+    vi.clearAllMocks()
   })
 
   test('should render dashboard with correct title', () => {
@@ -193,7 +195,7 @@ describe('Dashboard Component', () => {
     const viewAllButton = screen.getByText('View All Clients')
     fireEvent.click(viewAllButton)
 
-    expect(mockNavigateTo).toHaveBeenCalledWith('/clients', {}, {})
+    expect(navigateSpy).toHaveBeenCalledWith('/clients', {}, {})
   })
 
   test('should navigate to add client when clicking "Add New Client"', () => {
@@ -202,7 +204,7 @@ describe('Dashboard Component', () => {
     const addClientButton = screen.getByText('Add New Client')
     fireEvent.click(addClientButton)
 
-    expect(mockNavigateTo).toHaveBeenCalledWith('/clients/new', {}, {})
+    expect(navigateSpy).toHaveBeenCalledWith('/clients/new', {}, {})
   })
 
   test('should navigate to client detail when clicking on a client', () => {
@@ -214,7 +216,7 @@ describe('Dashboard Component', () => {
     // Click on the first "View Details" button (which corresponds to Client E)
     fireEvent.click(viewDetailsButtons[0])
 
-    expect(mockNavigateTo).toHaveBeenCalledWith('/clients/:id', {}, { id: '5' })
+    expect(navigateSpy).toHaveBeenCalledWith('/clients/:id', {}, { id: '5' })
   })
 
   test('should handle empty clients list', () => {

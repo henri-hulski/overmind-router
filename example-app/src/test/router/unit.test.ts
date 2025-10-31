@@ -1,13 +1,13 @@
 import { createOvermindMock } from 'overmind'
-import { describe, expect, test, vi } from 'vitest'
-
-import { config } from '../../overmind'
 import {
   type ParamsT,
   type ParsedRouteT,
   type RoutesT,
   type RouteT,
-} from '../../overmind/router/router.effects'
+} from 'overmind-router'
+import { describe, expect, test, vi } from 'vitest'
+
+import { config } from '../../overmind'
 
 const routes: RoutesT = {
   '/': {},

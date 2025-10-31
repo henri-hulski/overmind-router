@@ -1,4 +1,5 @@
 import React from 'react'
+import type { ClientT } from '../../overmind/clients/clients.effects'
 
 import { useActions, useAppState } from '../../overmind'
 
@@ -53,7 +54,7 @@ export const Dashboard: React.FC = () => {
 
         {recentClients.length > 0 ? (
           <div className="client-list">
-            {recentClients.map((client) => (
+            {recentClients.map((client: ClientT) => (
               <div key={client.id} className="client-item">
                 <div className="client-info">
                   <h4>{client.name}</h4>

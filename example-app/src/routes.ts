@@ -1,5 +1,6 @@
+import type { RoutesT } from 'overmind-router'
+
 import type { UserT } from './overmind/auth/auth.effects'
-import type { RoutesT } from './overmind/router/router.effects'
 
 // Define guard functions for authorization
 const hasAdminRole = (user: UserT | null) => !!(user && user.isAdmin)

@@ -283,7 +283,7 @@ switch (router.current) {
 
 ## Types
 
-### `RouteConfigT` and `RoutesT`
+### `RouteConfigT`, `RoutesT` and `RouteGuard`
 
 Route definition object with authentication and authorization support.
 

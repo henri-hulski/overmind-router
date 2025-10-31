@@ -1,5 +1,5 @@
 import type { Context } from '..'
-import type { PostClientT } from './clients.effects'
+import type { PostClientT, ClientT } from './clients.effects'
 
 export const loadClients = async ({ state, effects }: Context) => {
   state.clients.send('FETCH_CLIENTS_REQUESTED')
@@ -18,7 +18,7 @@ export const loadClient = async (context: Context, clientId: number) => {
   const { state } = context
 
   // First check if we already have the client in state
-  const existingClient = state.clients.clients.find((c) => c.id === clientId)
+  const existingClient = state.clients.clients.find((c: ClientT) => c.id === clientId)
   if (existingClient) {
     state.clients.send('CLIENT_SELECTED', { client: existingClient })
     return existingClient
@@ -29,7 +29,7 @@ export const loadClient = async (context: Context, clientId: number) => {
     await loadClients(context)
   }
 
-  const client = state.clients.clients.find((c) => c.id === clientId)
+  const client = state.clients.clients.find((c: ClientT) => c.id === clientId)
   state.clients.send('CLIENT_SELECTED', { client: client || null })
   return client
 }

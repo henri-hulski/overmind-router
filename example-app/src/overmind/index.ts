@@ -5,12 +5,12 @@ import {
   createReactionHook,
   createStateHook,
 } from 'overmind-react'
+import { config as router } from 'overmind-router'
 import { namespaced } from 'overmind/config'
 
 import * as app from './app'
 import * as auth from './auth'
 import * as clients from './clients'
-import * as router from './router'
 
 export const config = namespaced({
   app,

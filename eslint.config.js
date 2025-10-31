@@ -1,10 +1,11 @@
 import js from '@eslint/js'
 import eslintConfigPrettier from 'eslint-config-prettier/flat'
+import { defineConfig } from 'eslint/config'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
-export default tseslint.config(
-  { ignores: ['dist'] },
+export default defineConfig(
+  { ignores: ['dist', 'lib', 'es', '.pytest_cache'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

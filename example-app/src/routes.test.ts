@@ -1,6 +1,6 @@
+import type { RouteConfigT } from 'overmind-router'
 import { describe, expect, test } from 'vitest'
 
-import type { RouteConfigT } from './overmind/router/router.effects'
 import { routes } from './routes'
 
 describe('Routes Configuration', () => {

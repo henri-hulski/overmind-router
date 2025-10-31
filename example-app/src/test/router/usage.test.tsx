@@ -1,16 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { createOvermindMock } from 'overmind'
 import { Provider } from 'overmind-react'
+import type { ParamsT, ParsedRouteT, RoutesT, RouteT } from 'overmind-router'
 import React from 'react'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { config, useActions, useAppState } from '../../overmind'
-import type {
-  ParamsT,
-  ParsedRouteT,
-  RoutesT,
-  RouteT,
-} from '../../overmind/router/router.effects'
 import { routes } from '../../routes'
 
 /**
