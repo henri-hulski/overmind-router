@@ -1,5 +1,8 @@
-node_modules
-dist
-coverage
-.env
-.vscode
+**/node_modules
+**/dist
+**/es
+**/lib
+**/coverage
+**/.env
+**/.vscode
+**/.pytest_cache

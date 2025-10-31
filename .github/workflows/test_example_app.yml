@@ -1,0 +1,38 @@
+name: Test Example App
+
+on:
+  workflow_run:
+    workflows: [Test]
+    types: [completed]
+
+jobs:
+  test:
+    name: Test Example App
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    env:
+      REPO_COOKER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x, 24.x, 25.x]
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_branch }}
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - run: npm pack --pack-destination ./example-app
+      - run: cd example-app
+      - run: npm ci
+      - run: npm install overmind-router-2.0.0.tgz
+      - run: npm test
+      - run: npm run typecheck

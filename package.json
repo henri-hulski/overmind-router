@@ -1,6 +1,6 @@
 {
   "name": "overmind-router",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "State machine-driven router for Overmind applications",
   "keywords": [
     "overmind",
@@ -14,47 +14,52 @@
     "type": "git",
     "url": "git+https://github.com/henri-hulski/overmind-router.git"
   },
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.ts",
+        "default": "./es/index.js"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
+    }
+  },
+  "files": [
+    "lib",
+    "es"
+  ],
   "scripts": {
-    "build": "vite build",
+    "build": "tsdown",
     "coverage": "vitest run --coverage",
-    "lint": "eslint .",
-    "format": "prettier . --write --list-different && npm run lint -- --fix",
-    "preview": "vite preview",
+    "lint": "eslint . && prettier --check .",
+    "format": "eslint --fix . && prettier . --write --list-different",
     "test": "vitest run",
     "test:watch": "vitest",
-    "start": "vite serve --force",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "overmind": "^28.1.0",
-    "overmind-react": "^29.1.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+  "peerDependencies": {
+    "overmind": "^28.2.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.38.0",
+    "@eslint/js": "^9.39.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
-    "@types/node": "^24.9.2",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^5.1.0",
-    "@vitest/coverage-v8": "^4.0.6",
-    "eslint": "^9.38.0",
+    "@types/node": "^24.10.1",
+    "@vitest/coverage-v8": "^4.0.14",
+    "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
-    "globals": "^16.4.0",
-    "jsdom": "^27.1.0",
+    "globals": "^16.5.0",
+    "jsdom": "^27.2.0",
+    "overmind": "^28.2.0",
     "prettier": "^3.6.2",
+    "tsdown": "^0.16.7",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2",
-    "vite": "^7.1.12",
-    "vitest": "^4.0.6"
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ]
+    "typescript-eslint": "^8.48.0",
+    "vitest": "^4.0.14"
+  }
 }

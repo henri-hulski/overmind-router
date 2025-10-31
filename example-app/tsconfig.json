@@ -7,14 +7,15 @@
     "isolatedModules": true,
     "jsx": "react",
     "lib": ["dom", "esnext"],
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext"
+    "target": "esnext",
+    "types": ["@testing-library/jest-dom"]
   },
   "exclude": ["node_modules", "dist"],
-  "include": ["src", "tsdown.config.mts", "vitest.config.mts"]
+  "include": ["src", "vite.config.mts"]
 }
