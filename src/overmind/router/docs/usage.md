@@ -2,6 +2,23 @@
 
 Learn how to use the Overmind router for navigation and route handling.
 
+## Current Route Structure
+
+The current route structure can be accessed using the `getCurrentRoute` action:
+
+```typescript
+const currentRoute = actions.router.getCurrentRoute()
+
+if (currentRoute) {
+  const { pattern, routeParams, params, path } = currentRoute
+
+  // pattern: '/clients/:id'
+  // path: '/clients/123'
+  // params: { search: 'john' }
+  // routeParams: { id: '123' }
+}
+```
+
 ## Navigation
 
 ### Basic Navigation

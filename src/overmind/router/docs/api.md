@@ -24,6 +24,18 @@ actions.router.initializeRouter({
 
 ---
 
+### `getCurrentRoute(): ParsedRouteT | null`
+
+Get the currently active route.
+
+```typescript
+const currentRoute = actions.router.getCurrentRoute()
+```
+
+**Returns:** The current route as a `ParsedRouteT` object or `null` if not found.
+
+---
+
 ### `navigateTo(route: RouteT)`
 
 Navigate to a specific route.

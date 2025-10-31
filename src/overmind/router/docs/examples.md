@@ -233,12 +233,13 @@ import type { Context } from '../index'
 import { routes } from '../../routes'
 
 export const routeGuardMiddleware = ({ state, actions }: Context) => {
+  const currentRoute = actions.router.getCurrentRoute()
+
   // Only run for authenticated routes
-  if (state.router.current !== 'ROUTER_READY' || !state.router.currentRoute) {
+  if (!currentRoute) {
     return
   }
 
-  const currentRoute = state.router.currentRoute
   const routeConfig = routes[currentRoute.pattern]
 
   if (!routeConfig) return

@@ -24,6 +24,12 @@ export const initializeRouter = (
   }
 }
 
+export const getCurrentRoute = ({ state }: Context) => {
+  return state.router.current === 'ROUTER_READY' && state.router.currentRoute
+    ? state.router.currentRoute
+    : null
+}
+
 export const navigateTo = ({ state, effects }: Context, route: RouteT) => {
   // Parse route URL string or object input
   const { pattern, path, params, routeParams } = effects.router.parseRoute(

@@ -366,6 +366,22 @@ describe('Router Actions', () => {
     })
   })
 
+  describe('getCurrentRoute', () => {
+    test('should return current route', () => {
+      overmind.actions.router.initializeRouter(routes)
+      const currentRoute = overmind.actions.router.getCurrentRoute()
+      expect(currentRoute).toEqual({
+        pattern: '/',
+        path: '/',
+      })
+    })
+
+    test('should return null if router not ready', () => {
+      const currentRoute = overmind.actions.router.getCurrentRoute()
+      expect(currentRoute).toBeNull()
+    })
+  })
+
   describe('navigateTo', () => {
     beforeEach(() => {
       overmind.actions.router.initializeRouter(routes)
