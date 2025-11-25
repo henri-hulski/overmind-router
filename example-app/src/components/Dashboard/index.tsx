@@ -36,7 +36,7 @@ export const Dashboard: React.FC = () => {
         <div className="stat-card">
           <h3>Monthly Revenue</h3>
           <div className="stat-number">
-            ${(totalClients * 2500).toLocaleString()}
+            ${(totalClients * 2500).toLocaleString('en-US')}
           </div>
         </div>
       </div>

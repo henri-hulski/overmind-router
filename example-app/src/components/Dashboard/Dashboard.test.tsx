@@ -213,7 +213,7 @@ describe('Dashboard Component', () => {
     expect(screen.getByText('3')).toBeInTheDocument() // Math.floor(5 * 0.7)
 
     expect(screen.getByText('Monthly Revenue')).toBeInTheDocument()
-    expect(screen.getByText('$12.500')).toBeInTheDocument() // 5 * 2500 formatted
+    expect(screen.getByText('$12,500')).toBeInTheDocument() // 5 * 2500 formatted
   })
 
   test('should display recent clients section', () => {
@@ -349,7 +349,7 @@ describe('Dashboard Component', () => {
     expect(activeProjectsCard?.querySelector('.stat-number')).toHaveTextContent(
       '0'
     ) // Math.floor(1 * 0.7) = 0
-    expect(screen.getByText('$2.500')).toBeInTheDocument() // 1 * 2500
+    expect(screen.getByText('$2,500')).toBeInTheDocument() // 1 * 2500
     expect(screen.getByText('Single Client')).toBeInTheDocument()
   })
 
