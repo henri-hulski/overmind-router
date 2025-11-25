@@ -79,7 +79,7 @@ import * as app from './app'
 export const config = namespaced({
   app,
   // ... other namespace mount points
-  router, // or `myRouter: router` for custom namespace
+  router // or `myRouter: router` for custom namespace
 })
 
 export type Context = IContext<typeof config>

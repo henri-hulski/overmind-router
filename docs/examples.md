@@ -314,7 +314,7 @@ import * as app from './app'
 export const config = namespaced({
   app,
   // ... other namespace mount points
-  router,
+  router
 })
 
 export type Context = IContext<typeof config>
