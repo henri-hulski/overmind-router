@@ -33,8 +33,6 @@ jobs:
       - run: npm pack --pack-destination ./example-app
       - run: npm ci
         working-directory: ./example-app
-      - run: npm install overmind-router-2.0.0.tgz
-        working-directory: ./example-app
       - run: npm test
         working-directory: ./example-app
       - run: npm run typecheck

@@ -1,6 +1,6 @@
 {
   "name": "overmind-router-example-app",
-  "version": "2.0.0.beta1",
+  "version": "0.0.0-development",
   "description": "Example app for Overmind Router",
   "keywords": [
     "overmind",
@@ -26,7 +26,7 @@
   "dependencies": {
     "overmind": "^28.2.0",
     "overmind-react": "^29.2.0",
-    "overmind-router": "file:overmind-router-2.0.0.tgz",
+    "overmind-router": "file:overmind-router-0.0.0-development.tgz",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
