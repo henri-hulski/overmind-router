@@ -35,9 +35,12 @@
   ],
   "scripts": {
     "build": "tsdown",
+    "commitlint": "commitlint --edit",
     "coverage": "vitest run --coverage",
-    "lint": "eslint . && prettier --check .",
     "format": "eslint --fix . && prettier . --write --list-different",
+    "lint": "eslint . && prettier --check .",
+    "lint-staged": "lint-staged",
+    "prepare": "husky",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
@@ -46,6 +49,8 @@
     "overmind": "^28.2.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
     "@eslint/js": "^9.39.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@testing-library/jest-dom": "^6.9.1",
@@ -54,12 +59,30 @@
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
+    "husky": "^9.1.7",
     "jsdom": "^27.2.0",
+    "lint-staged": "^16.2.7",
     "overmind": "^28.2.0",
     "prettier": "^3.6.2",
     "tsdown": "^0.16.7",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0",
     "vitest": "^4.0.14"
+  },
+  "lint-staged": {
+    "*.{ts,tsx, mts}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.md": "prettier --write"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "release": {
+    "branches": ["main", "next"],
+    "preset": "conventionalcommits"
   }
 }
