@@ -1,80 +1,40 @@
 {
-  "name": "overmind-router",
-  "version": "0.0.0-development",
-  "description": "State machine-driven router for Overmind applications",
-  "keywords": [
-    "overmind",
-    "router",
-    "state machine",
-    "react"
-  ],
-  "author": "Henri Hulski <henri@sancode.it>",
+  "name": "overmind-router-monorepo",
+  "private": true,
+  "version": "1.0.0",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/henri-hulski/overmind-router.git"
-  },
-  "main": "lib/index.js",
-  "module": "es/index.js",
-  "types": "lib/index.d.ts",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./lib/index.d.ts",
-        "default": "./es/index.js"
-      },
-      "require": {
-        "types": "./lib/index.d.ts",
-        "default": "./lib/index.js"
-      }
-    }
-  },
-  "files": [
-    "lib",
-    "es"
+  "workspaces": [
+    "packages/*"
   ],
   "scripts": {
-    "build": "tsdown",
     "commitlint": "commitlint --edit",
-    "coverage": "vitest run --coverage",
     "format": "eslint --fix . && prettier . --write --list-different",
     "lint": "eslint . && prettier --check .",
     "lint-staged": "lint-staged",
-    "prepare": "husky",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
-  },
-  "peerDependencies": {
-    "overmind": "^28.2.0"
+    "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@eslint/js": "^9.39.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
-    "@testing-library/jest-dom": "^6.9.1",
     "@types/node": "^24.10.1",
-    "@vitest/coverage-v8": "^4.0.14",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
-    "jsdom": "^27.2.0",
     "lint-staged": "^16.2.7",
-    "overmind": "^28.2.0",
     "prettier": "^3.6.2",
-    "tsdown": "^0.16.7",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0",
     "vitest": "^4.0.14"
   },
   "lint-staged": {
-    "*.{ts,tsx, mts}": [
+    "*.{ts,tsx,mts}": [
       "eslint --fix",
       "prettier --write"
     ],
-    "*.md": "prettier --write"
+    "*.{md,json}": "prettier --write"
   },
   "commitlint": {
     "extends": [

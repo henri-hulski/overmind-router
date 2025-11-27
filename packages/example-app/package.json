@@ -1,19 +1,10 @@
 {
   "name": "overmind-router-example-app",
-  "version": "0.0.0-development",
-  "description": "Example app for Overmind Router",
-  "keywords": [
-    "overmind",
-    "router",
-    "state machine",
-    "react"
-  ],
-  "author": "Henri Hulski <henri@sancode.it>",
+  "private": true,
+  "version": "1.0.0",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/henri-hulski/overmind-router.git"
-  },
+  "description": "Example app for Overmind Router",
+  "author": "Henri Hulski <henri@sancode.it>",
   "scripts": {
     "build": "vite build",
     "coverage": "vitest run --coverage",
@@ -26,7 +17,7 @@
   "dependencies": {
     "overmind": "^28.2.0",
     "overmind-react": "^29.2.0",
-    "overmind-router": "file:overmind-router-0.0.0-development.tgz",
+    "overmind-router": "*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

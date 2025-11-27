@@ -26,4 +26,6 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
+        working-directory: ./packages/router
       - run: npm run typecheck
+        working-directory: ./packages/router
