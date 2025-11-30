@@ -8,7 +8,7 @@ Practical examples of using the Overmind router in real applications.
 
 ```typescript
 // src/routes.ts
-import type { RoutesT } from 'overmind-router'
+import type { RoutesT } from '@ovtools/router'
 
 import type { UserT } from './overmind/auth/auth.effects'
 
@@ -286,7 +286,7 @@ export const onInitializeOvermind = async ({ state, actions }: Context) => {
 
 ```typescript
 // src/routes.ts
-import type { RoutesT } from 'overmind-router'
+import type { RoutesT } from '@ovtools/router'
 
 export const routes: RoutesT = {
   '/': {},
@@ -306,7 +306,7 @@ export const routes: RoutesT = {
 ```typescript
 // src/overmind/index.ts
 import { type IContext } from 'overmind'
-import { router } from 'overmind-router'
+import { router } from '@ovtools/router'
 import { namespaced } from 'overmind/config'
 
 import * as app from './app'

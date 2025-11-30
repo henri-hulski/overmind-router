@@ -5,7 +5,18 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default defineConfig(
-  { ignores: ['dist', 'lib', 'es', '.pytest_cache'] },
+  {
+    ignores: [
+      '**/lib/',
+      '**/es/',
+      '**/dist/',
+      '**/build/',
+      '**/*.min.js',
+      '**/bundle.js',
+      '**/coverage/',
+      '**/vendor/',
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

@@ -1,4 +1,4 @@
-import type { RoutesT } from 'overmind-router'
+import type { RoutesT } from '@ovtools/router'
 
 import type { UserT } from './overmind/auth/auth.effects'
 

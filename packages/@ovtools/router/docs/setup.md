@@ -4,10 +4,10 @@ This guide shows how to set up the Overmind router in your React application.
 
 ## 1. Installation
 
-Install `overmind-router` from npm like:
+Install Overmind Router from npm with:
 
 ```sh
-npm install overmind-router
+npm install @ovtools/router
 ```
 
 ## 2. Define Routes
@@ -16,7 +16,7 @@ Create your route configuration with authentication and authorization:
 
 ```typescript
 // src/routes.ts
-import type { RoutesT } from 'overmind-router'
+import type { RoutesT } from '@ovtools/router'
 
 import type { UserT } from './overmind/auth/auth.effects'
 
@@ -71,7 +71,7 @@ Mount the Router in the Overmind setup under `router` or any other namespace:
 ```typescript
 // src/overmind/index.ts
 import { type IContext } from 'overmind'
-import { router } from 'overmind-router'
+import { router } from '@ovtools/router'
 import { namespaced } from 'overmind/config'
 
 import * as app from './app'

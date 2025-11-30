@@ -1,8 +1,8 @@
 {
-  "name": "overmind-router-example-app",
-  "private": true,
+  "name": "router-app",
   "version": "1.0.0",
   "license": "MIT",
+  "private": true,
   "description": "Example app for Overmind Router",
   "author": "Henri Hulski <henri@sancode.it>",
   "scripts": {
@@ -15,9 +15,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ovtools/router": "*",
     "overmind": "^28.2.0",
     "overmind-react": "^29.2.0",
-    "overmind-router": "*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

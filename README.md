@@ -1,38 +1,29 @@
-# Overmind Router Monorepo
+# Overmind Tools
 
-A lightweight, state machine-driven router for Overmind applications with TypeScript support.
+Tools and libraries to enhance Overmind state management.
+Includes example applications and documentation.
 
-## Features
+## Packages
 
-- 🚀 **State Machine Driven** - Uses Overmind state machine patterns for reliable navigation states
-- 🔄 **Bidirectional Routing** - URL changes update components, component actions update URL
-- 📝 **TypeScript Support** - Fully typed route parameters and state
-- 🎯 **Route Parameters** - Dynamic route segments and query parameters
-- 🔐 **Route Guards** - Built-in authentication and authorization support
-- 🛡️ **Route Access Control** - `requiresAuth` and custom `guard` function
-- ⚡ **Zero Dependencies** - Built specifically for Overmind
-- 🧪 **Well Tested** - Comprehensive test suite included
-- 🔍 **Devtools Integration** - Full visibility into router state machine transitions via Overmind devtools
+- [Overmind Router](./packages/@ovtools/router/README.md) - Powerful state-machine driven router for Overmind applications.
 
-## Quick Start
+## Example Applications
 
-1. [Overmind Router](./packages/router/README.md)
-2. [Setup and Configuration](./docs/setup.md)
-3. [Basic Usage](./docs/usage.md)
-4. [API Reference](./docs/api.md)
-5. [Examples](./docs/examples.md)
-6. [Example App](./packages/example-app/README.md)
+- [Router Example App](./packages/examples/router-app/README.md) - Example application showcasing Overmind Router capabilities.
 
 ## Monorepo Structure
 
 ```sh
-├── packages/
-│   ├── router/
-│   │   ├── src/
-│   │   │   ├── router.state.ts      # State machine definition
-│   │   │   ├── router.actions.ts    # Navigation actions
-│   │   │   ├── router.effects.ts    # Browser API integration
-│   │   │   └── index.ts             # Router module exports
-│   └── example-app/                 # Example application
-└── docs/                            # Documentation
+overmind-tools/
+├── packages/                          # Overmind tools packages
+│   ├── @ovtools/                      # @ovtools scoped packages
+│   │   ├── router/                    # Overmind Router package
+│   │   │   ├── docs/                  # Router documentation
+│   │   │   ├── src/                   # Router source code
+│   │   │   │   ├── router.state.ts    # State machine definition
+│   │   │   │   ├── router.actions.ts  # Navigation actions
+│   │   │   │   ├── router.effects.ts  # Browser API integration
+│   │   │   └── index.ts               # Router module exports
+├── examples/                          # Example applications
+│   └── router-app/                    # Router example application
 ```

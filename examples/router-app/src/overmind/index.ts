@@ -1,3 +1,4 @@
+import { router } from '@ovtools/router'
 import { type IContext } from 'overmind'
 import {
   createActionsHook,
@@ -5,7 +6,6 @@ import {
   createReactionHook,
   createStateHook,
 } from 'overmind-react'
-import { router } from 'overmind-router'
 import { namespaced } from 'overmind/config'
 
 import * as app from './app'

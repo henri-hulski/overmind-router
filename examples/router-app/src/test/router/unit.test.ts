@@ -1,10 +1,10 @@
-import { createOvermindMock } from 'overmind'
 import {
   type ParamsT,
   type ParsedRouteT,
   type RoutesT,
   type RouteT,
-} from 'overmind-router'
+} from '@ovtools/router'
+import { createOvermindMock } from 'overmind'
 import { describe, expect, test, vi } from 'vitest'
 
 import { config } from '../../overmind'

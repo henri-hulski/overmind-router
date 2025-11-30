@@ -6,4 +6,3 @@
 **/.env
 **/.vscode
 **/.pytest_cache
-**/overmind-router-*.tgz

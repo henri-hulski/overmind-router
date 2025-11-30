@@ -1,19 +1,31 @@
 {
-  "name": "overmind-router-monorepo",
-  "private": true,
-  "version": "1.0.0",
+  "name": "overmind-tools",
+  "version": "0.0.0-dev",
   "license": "MIT",
+  "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/@ovtools/*",
+    "examples/*"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henri-hulski/overmind-tools.git"
+  },
   "scripts": {
+    "build": "repo-cooker --build",
     "commitlint": "commitlint --edit",
     "format": "eslint --fix . && prettier . --write --list-different",
     "lint": "eslint . && prettier --check .",
     "lint-staged": "lint-staged",
-    "prepare": "husky"
+    "prepare": "husky",
+    "release": "repo-cooker --release",
+    "test": "repo-cooker test --no-parallel",
+    "typecheck": "repo-cooker typecheck"
   },
   "devDependencies": {
+    "@babel/cli": "^7.28.3",
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@eslint/js": "^9.39.1",
@@ -24,7 +36,8 @@
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.6.2",
+    "prettier": "^3.7.3",
+    "repo-cooker": "^8.2.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0",
     "vitest": "^4.0.14"
@@ -40,9 +53,5 @@
     "extends": [
       "@commitlint/config-conventional"
     ]
-  },
-  "release": {
-    "branches": ["main", "next"],
-    "preset": "conventionalcommits"
   }
 }

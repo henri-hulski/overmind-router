@@ -2,26 +2,18 @@ name: Release
 
 on:
   workflow_run:
-    workflows: [Test Example App]
+    workflows: [Test]
     types: [completed]
     branches:
       - main
       - next
 
-permissions:
-  contents: read
-
 jobs:
   release:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    defaults:
-      run:
-        working-directory: ./packages/router
     permissions:
       contents: write
-      issues: write
-      pull-requests: write
       id-token: write
     steps:
       - uses: actions/checkout@v5
@@ -31,18 +23,16 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: 22
           cache: 'npm'
           registry-url: https://registry.npmjs.org/
 
       - name: Update npm
         run: npm install -g npm@latest
       - run: npm ci
-        working-directory: .
-      - run: npm run build
       - run: npm audit signatures
       - name: Release
         if: github.event_name != 'pull_request'
+        run: npm run release -- --print-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+          REPO_COOKER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,5 @@
 {
-  "name": "overmind-router",
+  "name": "@ovtools/router",
   "version": "0.0.0-development",
   "license": "MIT",
   "description": "State machine-driven router for Overmind applications",
@@ -12,7 +12,7 @@
   "author": "Henri Hulski <henri@sancode.it>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/henri-hulski/overmind-router.git"
+    "url": "git+https://github.com/henri-hulski/overmind-tools.git"
   },
   "main": "lib/index.js",
   "module": "es/index.js",

@@ -1,4 +1,4 @@
-import type { RouteConfigT } from 'overmind-router'
+import type { RouteConfigT } from '@ovtools/router'
 import { describe, expect, test } from 'vitest'
 
 import { routes } from './routes'
