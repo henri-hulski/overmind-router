@@ -1,7 +1,7 @@
 import { createOvermindMock } from 'overmind'
 import { describe, expect, test, vi } from 'vitest'
 
-import { config } from '../index'
+import { config } from '..'
 
 describe('auth actions', () => {
   test('should handle checkSession when called from onInitializeOvermind', async () => {
