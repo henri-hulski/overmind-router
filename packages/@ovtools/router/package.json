@@ -46,11 +46,11 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@types/node": "^24.10.1",
-    "@vitest/coverage-v8": "^4.0.14",
+    "@vitest/coverage-v8": "^4.0.15",
     "jsdom": "^27.2.0",
     "overmind": "^28.2.1",
-    "tsdown": "^0.16.7",
+    "tsdown": "^0.17.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.14"
+    "vitest": "^4.0.15"
   }
 }
