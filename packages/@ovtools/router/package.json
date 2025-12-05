@@ -1,6 +1,6 @@
 {
   "name": "@ovtools/router",
-  "version": "0.0.0-development",
+  "version": "0.0.0-dev",
   "license": "MIT",
   "description": "State machine-driven router for Overmind applications",
   "keywords": [
@@ -41,14 +41,14 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "overmind": "^28.2.0"
+    "overmind": ">=28.2.1 <29.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@types/node": "^24.10.1",
     "@vitest/coverage-v8": "^4.0.14",
     "jsdom": "^27.2.0",
-    "overmind": "^28.2.0",
+    "overmind": "^28.2.1",
     "tsdown": "^0.16.7",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"
