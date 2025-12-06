@@ -20,7 +20,7 @@ A lightweight, state machine-driven router for Overmind applications with TypeSc
 2. [Basic Usage](./docs/usage.md)
 3. [API Reference](./docs/api.md)
 4. [Examples](./docs/examples.md)
-5. [Example App](../../examples/router-app/README.md)
+5. [Example App](../../../examples/router-app/README.md)
 
 ## Basic Example
 
