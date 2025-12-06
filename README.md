@@ -9,7 +9,7 @@ Includes example applications and documentation.
 
 ## Example Applications
 
-- [Router Example App](./packages/examples/router-app/README.md) - Example application showcasing Overmind Router capabilities.
+- [Router Example App](./examples/router-app/README.md) - Example application showcasing Overmind Router capabilities.
 
 ## Monorepo Structure
 
